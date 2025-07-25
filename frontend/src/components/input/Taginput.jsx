@@ -1,8 +1,10 @@
 import React from 'react'
 
-function Taginput() {
+function Taginput({tags,setTags}) {
   return (
-    <div>Taginput</div>
+    <div className=''>
+
+    </div>
   )
 }
 
