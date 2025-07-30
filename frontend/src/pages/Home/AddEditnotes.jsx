@@ -5,7 +5,7 @@ import Taginput from '../../components/input/Taginput';
 function AddEditnotes({ type, noteData, onClose }) {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
-    const [tags, setTags] = useState([]);
+    const [tags, setTags] = useState(["tags"]);
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -76,7 +76,7 @@ function AddEditnotes({ type, noteData, onClose }) {
             </div>
 
             {error && <p className='text-red-500 text-xs pt-4'>{error}</p>}
-<Taginput tags={tags} setTags={setTags}/>
+<Taginput tags={tags} setTags={setTags} className='text-slate-900'/>
             <button className='btn-primary font-medium mt-5 p-3' onClick={handleAddNote}>
                 {type === 'edit' ? 'UPDATE' : 'ADD NOTE'}
             </button>
