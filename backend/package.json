@@ -5,9 +5,15 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-   "dev":"nodemon index.js"
+    "dev": "nodemon index.js"
   },
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "mongodb": "^6.18.0"
+  }
 }
