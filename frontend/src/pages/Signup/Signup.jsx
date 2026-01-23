@@ -1,13 +1,16 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import PasswordInput from "../../components/input/Passwordinput";
+import { Link, useNavigate } from "react-router-dom";
+import PasswordInput from "../../components/input/PasswordInput";
 import { validateEmail } from "../../utlis/helper";
+import axios from "axios";
+import { set } from "mongoose";
 
 function Signup() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate("")
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -26,11 +29,31 @@ if(!name){
     }
 
     setError("");
-    // sign up api
+    navigate("/login")
+try {
+  const res = await axios.post("http://localhost:3000/api/auth/signup",
+    {username:name , email , password} ,{withCredentials:true}
+  )
+
+  if(res.data.success === false){
+    setError(res.data.message)
+    return
+  }
+
+  setError("")
+  na
+} catch (error) {
+  console.log(error.message)
+  setError(error.message)
+}
+
+
+
     console.log("Signup details:", { name, email, password });
   };
 
   return (
+    
     <div className="flex items-center justify-center mt-20">
       <div className="w-96 border rounded bg-white px-7 py-10">
         <form onSubmit={handleSignUp}>
