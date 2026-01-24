@@ -4,7 +4,6 @@ import { MdAdd, MdClose } from "react-icons/md"
 const TagInput = ({ tags, setTags }) => {
   const [inputValue, setInputValue] = useState("")
 
-  //   console.log(inputValue)
 
   const handleInputChange = (e) => {
     setInputValue(e.target.value)
