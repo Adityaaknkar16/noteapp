@@ -40,6 +40,25 @@ const hexToRGBA = (hex, alpha) => {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 };
 
+// Helper to resolve CSS variables into actual color hex/rgb strings for HTML5 Canvas
+const resolveCSSColor = (colorStr) => {
+  if (colorStr.startsWith("var(")) {
+    const varName = colorStr.slice(4, -1).trim();
+    if (typeof window !== "undefined" && window.getComputedStyle) {
+      const computed = window.getComputedStyle(document.body).getPropertyValue(varName).trim();
+      if (computed) return computed;
+    }
+    // Fallbacks
+    if (varName.includes("rust")) return "#c2542c";
+    if (varName.includes("sage")) return "#6f8f6b";
+    if (varName.includes("ochre")) return "#d6a23c";
+    if (varName.includes("blue")) return "#5c7a99";
+    if (varName.includes("ink")) return "#2b2520";
+    return "#2b2520";
+  }
+  return colorStr;
+};
+
 const DrawingCanvas = forwardRef(({ initialImage }, ref) => {
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
@@ -372,7 +391,7 @@ const DrawingCanvas = forwardRef(({ initialImage }, ref) => {
       ctx.lineWidth = baseWidth * 3.5;
     } else {
       ctx.globalCompositeOperation = "source-over";
-      ctx.strokeStyle = activeColor;
+      ctx.strokeStyle = resolveCSSColor(activeColor);
     }
   };
 
