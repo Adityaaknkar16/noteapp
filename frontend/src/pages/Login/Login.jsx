@@ -3,13 +3,14 @@ import PasswordInput from "../../components/input/PasswordInput"
 import { Link, useNavigate } from "react-router-dom"
 import { validateEmail } from "../../utlis/helper"
 import { useDispatch } from "react-redux"
-import { MdAutoAwesome, MdLock, MdMailOutline } from "react-icons/md"
+import { LuLock, LuMail } from "react-icons/lu"
 import { FaGoogle, FaFacebookF } from "react-icons/fa"
-import { HiSparkles } from "react-icons/hi"
 import axios from "axios"
 import { useAlert } from "../../components/Alert/AlertProvider"
 import { signInFailure, signInStart, signInSuccess } from "../../redux/userslice/userSlice"
-import plantImg from "../../assets/plant_transparent.png"
+import { toast } from "react-toastify"
+import PageDecor from "../../components/Doodles/PageDecor"
+import { DetailedLeaf } from "../../components/Doodles/Leaves"
 
 const Login = () => {
   const [view, setView] = useState("login")
@@ -96,56 +97,27 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-100 via-blue-200 to-indigo-200 p-4 md:p-8 relative overflow-hidden">
-
-      {/* Decorative background bubbles */}
-      <div className="absolute top-6 left-6 w-16 h-16 rounded-full border-4 border-blue-300/50 animate-pulse" />
-      <div className="absolute top-16 left-20 w-8 h-8 rounded-full border-4 border-blue-400/40" />
-      <div className="absolute bottom-10 left-10 w-24 h-24 rounded-full border-4 border-blue-300/40 animate-pulse" />
-      <div className="absolute bottom-20 left-32 w-10 h-10 rounded-full border-4 border-blue-400/30" />
-      <div className="absolute top-10 right-10 w-10 h-10 rounded-full border-4 border-blue-300/40" />
-      <div className="absolute bottom-12 right-16 w-16 h-16 rounded-full border-4 border-blue-300/30 animate-pulse" />
-      <div className="absolute top-1/3 right-6 w-6 h-6 rounded-full bg-blue-300/30" />
-
-      {/* Floating blob glows */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-300/20 rounded-full blur-[120px]" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-300/20 rounded-full blur-[120px]" />
-
+    <div className="min-h-screen w-full flex items-center justify-center bg-bg text-ink p-4 md:p-8 transition-colors relative overflow-hidden">
+      <PageDecor variant="login" />
       {/* Main Card */}
-      <div className="w-full max-w-5xl flex flex-col md:flex-row rounded-[32px] shadow-2xl overflow-hidden relative bg-white/10 backdrop-blur-sm border border-white/40" style={{ minHeight: '580px' }}>
-
-        {/* ── Left: Form ── */}
-        <div className="w-full md:w-[48%] flex flex-col justify-center p-8 lg:p-12 relative"
-          style={{ background: 'linear-gradient(145deg, #6fa8f5 0%, #4285f4 60%, #3b72e0 100%)' }}>
-
-          {/* Card inner highlight */}
-          <div className="absolute top-0 left-0 right-0 h-px bg-white/30 rounded-t-[32px]" />
-          <div className="absolute top-0 left-0 bottom-0 w-px bg-white/20" />
-
-          {/* Decorative dots inside card */}
-          <div className="absolute top-4 right-4 flex gap-2 opacity-30">
-            <div className="w-2 h-2 rounded-full bg-white" />
-            <div className="w-2 h-2 rounded-full bg-white" />
-            <div className="w-2 h-2 rounded-full bg-white" />
-          </div>
-
+      <div className="w-full max-w-4xl flex flex-col md:flex-row paper-card overflow-hidden relative border border-border" style={{ minHeight: '560px' }}>
+        
+        {/* Left Side: Form */}
+        <div className="w-full md:w-[50%] flex flex-col justify-center p-8 lg:p-12 bg-surface border-r border-border">
           {view === "login" && (
             <>
-              <div className="mb-8 text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 mb-4 backdrop-blur-sm border border-white/30">
-                  <MdLock className="text-white text-2xl" />
-                </div>
-                <h2 className="text-3xl font-extrabold text-white tracking-tight mb-1">Login Now</h2>
-                <p className="text-blue-100 text-xs font-medium">Welcome back! Sign in to continue.</p>
+              <div className="mb-6 text-center">
+                <h2 className="text-3xl font-display font-bold text-ink tracking-tight mb-2">Welcome Back</h2>
+                <p className="text-ink-muted text-xs font-medium">Log into your Inkwell workspace</p>
               </div>
 
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="relative">
-                  <MdMailOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
+                  <LuMail className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted text-lg" />
                   <input
                     type="text"
-                    placeholder="Email or Username"
-                    className="w-full text-sm bg-white text-slate-700 placeholder-slate-400 border-none outline-none pl-11 pr-4 py-3.5 rounded-2xl shadow-sm focus:ring-4 focus:ring-blue-600/20 font-medium transition-all"
+                    placeholder="Email Address"
+                    className="input-box pl-11 pr-4"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
@@ -153,41 +125,40 @@ const Login = () => {
 
                 <div>
                   <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
-                  <div className="flex justify-end -mt-1">
+                  <div className="flex justify-end mt-1.5">
                     <button type="button" onClick={() => { setView("forgot"); setError("") }}
-                      className="text-xs font-bold text-blue-100 hover:text-white transition-colors">
+                      className="text-xs font-bold text-accent-rust hover:underline transition-all">
                       Forgot password?
                     </button>
                   </div>
                 </div>
 
-                {error && <div className="bg-red-500/20 border border-red-400/30 text-red-100 text-xs px-4 py-2.5 rounded-xl font-semibold">{error}</div>}
+                {error && <div className="bg-accent-red/10 border border-accent-red/20 text-accent-red text-xs px-4 py-2.5 rounded-lg font-semibold">{error}</div>}
 
-                <button type="submit" disabled={isLoading}
-                  className="w-full bg-[#1a3a8f] hover:bg-[#152e73] text-white font-extrabold py-3.5 rounded-2xl shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-70 tracking-widest uppercase text-xs mt-2 border border-white/10">
+                <button type="submit" disabled={isLoading} className="btn-primary w-full mt-2">
                   {isLoading ? "Logging in..." : "Login"}
                 </button>
 
                 <div className="flex items-center gap-3 py-1">
-                  <div className="flex-1 h-px bg-white/20" />
-                  <span className="text-[10px] font-bold text-blue-100 uppercase tracking-widest">Or login with</span>
-                  <div className="flex-1 h-px bg-white/20" />
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">Or login with</span>
+                  <div className="flex-1 h-px bg-border" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <button type="button" onClick={() => triggerSocialMock("Facebook")}
-                    className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-[#1877f2] font-bold py-3 px-4 rounded-xl shadow-sm transition-colors cursor-pointer text-sm border border-white/50">
-                    <FaFacebookF className="text-sm" /><span>Facebook</span>
+                    className="flex items-center justify-center gap-2 bg-surface hover:bg-bg text-ink border border-border font-bold py-2.5 px-4 rounded-lg transition-colors cursor-pointer text-sm">
+                    <FaFacebookF className="text-sm text-accent-blue" /><span>Facebook</span>
                   </button>
                   <button type="button" onClick={() => triggerSocialMock("Google")}
-                    className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-[#ea4335] font-bold py-3 px-4 rounded-xl shadow-sm transition-colors cursor-pointer text-sm border border-white/50">
-                    <FaGoogle className="text-sm" /><span>Google</span>
+                    className="flex items-center justify-center gap-2 bg-surface hover:bg-bg text-ink border border-border font-bold py-2.5 px-4 rounded-lg transition-colors cursor-pointer text-sm">
+                    <FaGoogle className="text-sm text-accent-rust" /><span>Google</span>
                   </button>
                 </div>
 
-                <p className="text-sm text-center text-blue-100 font-semibold pt-2">
+                <p className="text-sm text-center text-ink-muted font-semibold pt-2">
                   Not a member?{" "}
-                  <Link to="/signup" className="text-white font-extrabold hover:underline">Signup now</Link>
+                  <Link to="/signup" className="text-accent-rust font-extrabold hover:underline">Signup now</Link>
                 </p>
               </form>
             </>
@@ -195,129 +166,101 @@ const Login = () => {
 
           {view === "forgot" && (
             <>
-              <div className="mb-8 text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 mb-4 backdrop-blur-sm border border-white/30">
-                  <MdMailOutline className="text-white text-2xl" />
-                </div>
-                <h2 className="text-2xl font-extrabold text-white tracking-tight mb-1">Forgot Password?</h2>
-                <p className="text-blue-100 text-xs font-medium">Enter your email to reset your password</p>
+              <div className="mb-6 text-center">
+                <h2 className="text-3xl font-display font-bold text-ink tracking-tight mb-2">Reset Password</h2>
+                <p className="text-ink-muted text-xs font-medium">Enter your account email to receive reset token</p>
               </div>
               <form onSubmit={handleForgotPassword} className="space-y-4">
-                <input type="text" placeholder="Enter your email"
-                  className="w-full text-sm bg-white text-slate-700 placeholder-slate-400 border-none outline-none px-5 py-3.5 rounded-2xl shadow-sm focus:ring-4 focus:ring-blue-600/20 font-medium"
-                  value={email} onChange={(e) => setEmail(e.target.value)} />
-                {error && <div className="bg-red-500/20 border border-red-400/30 text-red-100 text-xs px-4 py-2.5 rounded-xl font-semibold">{error}</div>}
-                <button type="submit" disabled={isLoading}
-                  className="w-full bg-[#1a3a8f] hover:bg-[#152e73] text-white font-extrabold py-3.5 rounded-2xl shadow-lg transition-all cursor-pointer disabled:opacity-70 tracking-widest uppercase text-xs">
-                  {isLoading ? "Searching..." : "Reset Password"}
+                <div className="relative">
+                  <LuMail className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted text-lg" />
+                  <input type="text" placeholder="Enter your email"
+                    className="input-box pl-11"
+                    value={email} onChange={(e) => setEmail(e.target.value)} />
+                </div>
+                {error && <div className="bg-accent-red/10 border border-accent-red/20 text-accent-red text-xs px-4 py-2.5 rounded-lg font-semibold">{error}</div>}
+                <button type="submit" disabled={isLoading} className="btn-primary w-full">
+                  {isLoading ? "Searching..." : "Find Account"}
                 </button>
                 <button type="button" onClick={() => { setView("login"); setError("") }}
-                  className="w-full text-center text-sm text-white hover:underline font-bold py-2 cursor-pointer">← Back to Login</button>
+                  className="w-full text-center text-xs font-bold text-ink-muted hover:text-ink hover:underline cursor-pointer py-2">← Back to Login</button>
               </form>
             </>
           )}
 
           {view === "reset" && (
             <>
-              <div className="mb-8 text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 mb-4 backdrop-blur-sm border border-white/30">
-                  <MdLock className="text-white text-2xl" />
-                </div>
-                <h2 className="text-2xl font-extrabold text-white tracking-tight mb-1">Set New Password</h2>
-                <p className="text-blue-100 text-xs font-medium">Create a new secure password</p>
+              <div className="mb-6 text-center">
+                <h2 className="text-3xl font-display font-bold text-ink tracking-tight mb-2">Set Password</h2>
+                <p className="text-ink-muted text-xs font-medium">Create a new secure password</p>
               </div>
               <form onSubmit={handleResetPassword} className="space-y-4">
                 <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder="New Password" />
                 <PasswordInput value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm Password" />
-                {error && <div className="bg-red-500/20 border border-red-400/30 text-red-100 text-xs px-4 py-2.5 rounded-xl font-semibold">{error}</div>}
-                <button type="submit" disabled={isLoading}
-                  className="w-full bg-[#1a3a8f] hover:bg-[#152e73] text-white font-extrabold py-3.5 rounded-2xl shadow-lg transition-all cursor-pointer disabled:opacity-70 tracking-widest uppercase text-xs">
+                {error && <div className="bg-accent-red/10 border border-accent-red/20 text-accent-red text-xs px-4 py-2.5 rounded-lg font-semibold">{error}</div>}
+                <button type="submit" disabled={isLoading} className="btn-primary w-full">
                   {isLoading ? "Updating..." : "Update Password"}
                 </button>
                 <button type="button" onClick={() => { setView("login"); setError("") }}
-                  className="w-full text-center text-sm text-white hover:underline font-bold py-2 cursor-pointer">Cancel</button>
+                  className="w-full text-center text-xs font-bold text-ink-muted hover:text-ink hover:underline cursor-pointer py-2">Cancel</button>
               </form>
             </>
           )}
         </div>
 
-        {/* ── Right: Illustration ── */}
-        <div className="hidden md:flex flex-1 relative items-center justify-center overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, #e8f0ff 0%, #c8daff 50%, #b8d0ff 100%)' }}>
-
-          {/* Large concentric circles  */}
-          <div className="absolute w-[520px] h-[520px] rounded-full"
-            style={{ background: 'rgba(66, 133, 244, 0.15)', boxShadow: 'inset 0 0 60px rgba(66,133,244,0.1)' }} />
-          <div className="absolute w-[420px] h-[420px] rounded-full"
-            style={{ background: 'rgba(66, 133, 244, 0.25)' }} />
-          <div className="absolute w-[330px] h-[330px] rounded-full"
-            style={{ background: 'rgba(59, 114, 224, 0.45)' }} />
-          <div className="absolute w-[240px] h-[240px] rounded-full"
-            style={{ background: 'rgba(26, 86, 219, 0.65)' }} />
-          <div className="absolute w-[150px] h-[150px] rounded-full"
-            style={{ background: 'rgba(17, 58, 160, 0.75)' }} />
-
-          {/* Floating circles decoration */}
-          <div className="absolute top-8 right-10 w-10 h-10 rounded-full border-4 border-blue-400/30 animate-bounce" style={{ animationDuration: '3s' }} />
-          <div className="absolute bottom-12 right-8 w-7 h-7 rounded-full border-4 border-blue-400/40" />
-          <div className="absolute top-1/2 right-4 w-5 h-5 rounded-full bg-blue-300/40" />
-          <div className="absolute top-8 left-8 w-6 h-6 rounded-full border-2 border-blue-300/30 animate-pulse" />
-          <div className="absolute bottom-8 left-12 w-4 h-4 rounded-full bg-blue-200/50" />
-
-          {/* The plant — transparent PNG */}
-          <img
-            src={plantImg}
-            alt="3D Plant"
-            className="relative z-10 w-64 h-64 object-contain drop-shadow-2xl"
-            style={{ filter: 'drop-shadow(0 20px 40px rgba(26,86,219,0.35))' }}
-          />
-
-          {/* Feature badges floating around */}
-          <div className="absolute bottom-8 left-6 bg-white/80 backdrop-blur-sm rounded-2xl px-3 py-2 shadow-lg border border-white/60 flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-blue-500 flex items-center justify-center">
-              <HiSparkles className="text-white text-xs" />
-            </div>
-            <span className="text-xs font-bold text-slate-700">Smart Notes</span>
-          </div>
-          <div className="absolute top-10 left-6 bg-white/80 backdrop-blur-sm rounded-2xl px-3 py-2 shadow-lg border border-white/60 flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-indigo-500 flex items-center justify-center">
-              <MdAutoAwesome className="text-white text-xs" />
-            </div>
-            <span className="text-xs font-bold text-slate-700">Track Habits</span>
+        {/* Right Side: Redesigned Aesthetic Illustration panel */}
+        <div className="hidden md:flex flex-1 relative flex-col justify-between p-12 bg-bg overflow-hidden border-l border-border select-none">
+          <div className="text-[10px] font-mono uppercase tracking-[0.3em] text-ink-muted">Inkwell Journal Co.</div>
+          
+          <div className="my-auto z-10 relative">
+            <h1 className="text-5xl font-display font-black text-ink leading-tight">
+              Thoughts <br />
+              <span className="text-accent-rust italic font-normal font-handwriting">written down</span> <br />
+              never drift away.
+            </h1>
+            <p className="text-xs text-ink-muted mt-6 max-w-sm leading-relaxed">
+              Redesigned for scholars, writers, and thinkers. A tactile productivity canvas that stays out of your way.
+            </p>
           </div>
 
-          {/* Brand name */}
-          <div className="absolute top-4 right-1/2 translate-x-1/2 text-blue-800/40 font-black text-xs uppercase tracking-[0.4em]">Notebook Pro</div>
+          <div className="flex items-center justify-between text-[10px] font-mono text-ink-muted border-t border-border pt-4 mt-8">
+            <span>© 2026 INKWELL</span>
+            <span>SECURE VAULT</span>
+          </div>
+
+          {/* Plant overlay subtle decoration */}
+          <div className="absolute bottom-[-5%] right-[-5%] opacity-20 pointer-events-none">
+            <DetailedLeaf size="200px" color="var(--accent-sage)" rotate={35} />
+          </div>
         </div>
       </div>
 
       {/* Social Modal */}
       {showSocialModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/30 backdrop-blur-sm">
+          <div className="bg-surface rounded-xl p-8 max-w-sm w-full shadow-lg border border-border">
             <div className="flex items-center gap-3 mb-6">
-              <div className={`p-2.5 rounded-xl ${socialProvider === 'Google' ? 'bg-red-50 text-[#ea4335]' : 'bg-blue-50 text-[#1877f2]'}`}>
-                {socialProvider === 'Google' ? <FaGoogle className="text-xl" /> : <FaFacebookF className="text-xl" />}
+              <div className={`p-2.5 rounded-lg bg-bg text-ink`}>
+                {socialProvider === 'Google' ? <FaGoogle className="text-lg text-accent-rust" /> : <FaFacebookF className="text-lg text-accent-blue" />}
               </div>
               <div>
-                <h3 className="font-extrabold text-lg text-slate-800">Sign in with {socialProvider}</h3>
-                <p className="text-xs text-slate-500">Select an account to continue</p>
+                <h3 className="font-display font-bold text-lg text-ink">Sign in with {socialProvider}</h3>
+                <p className="text-xs text-ink-muted">Select an account to continue</p>
               </div>
             </div>
             <div className="space-y-3">
               {[["Aditya Kanakar", "aditya@example.com"], ["Guest User", "guest.noteapp@gmail.com"]].map(([name, mail]) => (
                 <button key={mail} type="button" onClick={() => handleSocialSelect(name, mail)}
-                  className="w-full text-left p-3.5 rounded-xl hover:bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all flex items-center gap-3 cursor-pointer">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-sm shadow">{name[0]}</div>
+                  className="w-full text-left p-3 rounded-lg hover:bg-bg border border-border transition-all flex items-center gap-3 cursor-pointer">
+                  <div className="w-9 h-9 rounded-full bg-accent-rust flex items-center justify-center text-white font-bold text-sm shadow">{name[0]}</div>
                   <div>
-                    <div className="font-bold text-sm text-slate-800">{name}</div>
-                    <div className="text-xs text-slate-500">{mail}</div>
+                    <div className="font-bold text-sm text-ink">{name}</div>
+                    <div className="text-xs text-ink-muted">{mail}</div>
                   </div>
                 </button>
               ))}
             </div>
             <button type="button" onClick={() => setShowSocialModal(false)}
-              className="mt-5 w-full text-center text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider cursor-pointer py-2">
+              className="mt-5 w-full text-center text-xs font-bold text-ink-muted hover:text-ink transition-colors uppercase tracking-wider cursor-pointer py-2">
               Cancel
             </button>
           </div>

@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
-import { MdAdd, MdClose, MdOutlineStickyNote2, MdArchive, MdDeleteOutline, MdOutlineLabel, MdCheckCircle, MdBook, MdLocalFireDepartment, MdOutlineDashboard, MdSchool, MdCalendarToday } from "react-icons/md";
+import { LuPlus, LuX, LuTag, LuRefreshCw, LuFolderOpen } from "react-icons/lu";
 import Notecard from "../../components/Cards/Notecard";
 import AddEditnotes from "./AddEditnotes";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
+import Sidebar from "../../components/Sidebar/Sidebar";
 import axios from "axios";
 import { useAlert } from "../../components/Alert/AlertProvider";
+import BottomBar from "../../components/BottomBar/BottomBar";
 import EmptyCard from "../../components/EmptyCard/Empty";
-import FlowerDecor from "../../components/FlowerDecor/FlowerDecor";
+import PageDecor from "../../components/Doodles/PageDecor";
 import moment from "moment";
 import { useSettings } from "../../components/Settings/SettingsProvider";
 
@@ -36,6 +38,12 @@ function Home() {
 
   const [editorTabs, setEditorTabs] = useState([]);
   const [activeTabId, setActiveTabId] = useState(null);
+
+  // PIN Lock States
+  const [pinModalOpen, setPinModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
+  const [enteredPin, setEnteredPin] = useState("");
+  const [pinError, setPinError] = useState("");
 
   const handleOpenNoteInTab = (note) => {
     const exists = editorTabs.find(t => t._id === note._id);
@@ -130,7 +138,14 @@ function Home() {
         return;
       }
 
-      setAllNotes(res.data.notes || []);
+      // Sort client-side: Pinned first, then by date desc
+      const sortedNotes = (res.data.notes || []).sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+
+      setAllNotes(sortedNotes);
     } catch (error) {
       alert.error(error.message || "Error fetching notes");
     }
@@ -143,7 +158,51 @@ function Home() {
   };
 
   const handleEdit = (noteDetails) => {
-    handleOpenNoteInTab(noteDetails);
+    if (noteDetails.isLocked) {
+      setPendingAction({ type: "edit", note: noteDetails });
+      setEnteredPin("");
+      setPinError("");
+      setPinModalOpen(true);
+    } else {
+      handleOpenNoteInTab(noteDetails);
+    }
+  };
+
+  const handleCardClick = (noteDetails) => {
+    if (noteDetails.isLocked) {
+      setPendingAction({ type: "view", note: noteDetails });
+      setEnteredPin("");
+      setPinError("");
+      setPinModalOpen(true);
+    } else {
+      setViewNoteModal({ isShown: true, data: noteDetails });
+    }
+  };
+
+  const handleVerifyPin = async (e) => {
+    if (e) e.preventDefault();
+    if (!enteredPin || enteredPin.length !== 4) return;
+
+    try {
+      const res = await axios.post(
+        `http://localhost:3000/api/note/verify-pin/${pendingAction.note._id}`,
+        { pin: enteredPin },
+        { withCredentials: true }
+      );
+
+      if (res.data.success) {
+        setPinModalOpen(false);
+        const decryptedNote = res.data.note;
+        if (pendingAction.type === "edit") {
+          handleOpenNoteInTab(decryptedNote);
+        } else {
+          setViewNoteModal({ isShown: true, data: decryptedNote });
+        }
+        setPendingAction(null);
+      }
+    } catch (err) {
+      setPinError(err.response?.data?.message || "Incorrect PIN");
+    }
   };
 
   const handlePinNote = async (note) => {
@@ -267,12 +326,8 @@ function Home() {
   };
 
   return (
-    <div className="h-screen bg-slate-50 dark:bg-[#07090e] flex flex-col transition-colors duration-300 relative overflow-hidden">
-      {/* Dynamic Calming 3D Mesh Background */}
-      <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full mesh-glow-1 blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-[-15%] left-[-10%] w-[550px] h-[550px] rounded-full mesh-glow-2 blur-[100px] pointer-events-none" />
-      <div className="absolute top-[30%] left-[25%] w-[400px] h-[400px] rounded-full mesh-glow-3 blur-[90px] pointer-events-none" />
-      <FlowerDecor position="bottom-right" size="lg" opacity={0.12} />
+    <div className="h-screen bg-bg flex flex-col transition-colors duration-300 relative overflow-hidden text-ink">
+      <PageDecor variant="notes" />
 
       <Navbar
         userInfo={userInfo}
@@ -281,150 +336,78 @@ function Home() {
       />
 
       <div className="flex-1 flex relative z-1 overflow-hidden">
-        {/* Left Sidebar */}
-        <aside className="w-64 border-r border-slate-200/60 dark:border-slate-800 bg-white/60 dark:bg-slate-900/40 backdrop-blur-md p-6 flex flex-col gap-6 shrink-0 max-md:hidden transition-colors overflow-y-auto">
-          <div>
-            <h5 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Workspace</h5>
-            <div className="flex flex-col gap-1.5">
-              <button
-                onClick={() => navigate("/")}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 w-full text-left transition-all"
-              >
-                <MdOutlineDashboard className="text-lg text-blue-500/70 dark:text-blue-400/80" />
-                Dashboard
-              </button>
+        <Sidebar />
 
-              <button
-                onClick={() => navigate("/notes")}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 w-full text-left transition-all border border-emerald-500/20 shadow-sm"
-              >
-                <MdOutlineStickyNote2 className="text-lg text-emerald-500" />
-                Notes Grid
-              </button>
-
-              <div className="flex flex-col gap-1 pl-1 py-1 border-l border-slate-200 dark:border-slate-800 ml-3.5">
-                <button
-                  onClick={() => selectFilter("all")}
-                  className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    currentFilter === "all" && !selectedTag
-                      ? "text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10"
-                      : "text-slate-500 dark:text-slate-450 hover:text-slate-800 dark:hover:text-slate-200"
-                  }`}
-                >
-                  Active Notes
-                </button>
-
-                <button
-                  onClick={() => selectFilter("archive")}
-                  className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    currentFilter === "archive" && !selectedTag
-                      ? "text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10"
-                      : "text-slate-500 dark:text-slate-450 hover:text-slate-800 dark:hover:text-slate-200"
-                  }`}
-                >
-                  Archived
-                </button>
-
-                <button
-                  onClick={() => selectFilter("trash")}
-                  className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    currentFilter === "trash" && !selectedTag
-                      ? "text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10"
-                      : "text-slate-500 dark:text-slate-455 hover:text-slate-800 dark:hover:text-slate-200"
-                  }`}
-                >
-                  Trash Bin
-                </button>
-              </div>
-
-              <button
-                onClick={() => navigate("/tasks")}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 w-full text-left transition-all"
-              >
-                <MdCheckCircle className="text-lg text-violet-500/70 dark:text-violet-400/80" />
-                My Tasks
-              </button>
-
-              <button
-                onClick={() => navigate("/diary")}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 w-full text-left transition-all"
-              >
-                <MdBook className="text-lg text-pink-500/70 dark:text-pink-400/80" />
-                Daily Diary
-              </button>
-
-              <button
-                onClick={() => navigate("/habits")}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 w-full text-left transition-all"
-              >
-                <MdLocalFireDepartment className="text-lg text-orange-500/70 dark:text-orange-400/80" />
-                Habit Tracker
-              </button>
-
-              <button
-                onClick={() => navigate("/calendar")}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 w-full text-left transition-all"
-              >
-                <MdOutlineDashboard className="text-lg text-blue-500/70 dark:text-blue-400/80" />
-                Calendar
-              </button>
-
-              <button
-                onClick={() => navigate("/subjects")}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 w-full text-left transition-all"
-              >
-                <MdSchool className="text-lg text-slate-400" />
-                Subjects
-              </button>
+        {/* Main Notes Grid Area */}
+        <main className="flex-1 p-4 sm:p-8 pb-24 sm:pb-8 overflow-y-auto">
+          {/* Header Toolbar */}
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-4 border-b border-border pb-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink capitalize flex items-center gap-2">
+                <LuFolderOpen className="text-accent-rust text-2xl" />
+                {selectedTag ? `Tagged: #${selectedTag}` : `${currentFilter === 'all' ? 'Active' : currentFilter} Notes`}
+              </h1>
+              <p className="text-xs text-ink-muted mt-1 font-medium">
+                Showing {allNotes.length} notes in this workspace
+              </p>
             </div>
-          </div>
 
-          <div className="border-t border-slate-200/50 dark:border-slate-800 pt-4">
-            <h5 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Tags</h5>
-            {uniqueTags.length > 0 ? (
-              <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto pr-1">
-                {uniqueTags.map((tag) => (
+            <div className="flex items-center gap-3">
+              {/* Folder Filters */}
+              <div className="flex gap-1 bg-surface p-1 rounded-lg border border-border">
+                {["all", "archive", "trash"].map((filter) => (
                   <button
-                    key={tag}
-                    onClick={() => selectTag(tag)}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                      selectedTag === tag
-                        ? "bg-blue-600 text-white"
-                        : "bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                    key={filter}
+                    onClick={() => selectFilter(filter)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-semibold capitalize transition-all cursor-pointer ${
+                      currentFilter === filter && !selectedTag
+                        ? "bg-accent-rust text-white"
+                        : "text-ink-muted hover:bg-bg hover:text-ink"
                     }`}
                   >
-                    <MdOutlineLabel />
-                    {tag}
+                    {filter === 'all' ? 'Active' : filter}
                   </button>
                 ))}
               </div>
-            ) : (
-              <p className="text-xs text-slate-400 dark:text-slate-500 italic">No tags created yet.</p>
-            )}
-          </div>
-        </aside>
 
-        {/* Main Notes Grid Area */}
-        <main className="flex-1 p-8 overflow-y-auto">
-          {/* Header indicator */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100 capitalize">
-                {selectedTag ? `Tagged: #${selectedTag}` : `${currentFilter} Notes`}
-              </h1>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                Showing {allNotes.length} notes
-              </p>
-            </div>
-            {selectedTag && (
+              {selectedTag && (
+                <button
+                  onClick={() => selectFilter(currentFilter)}
+                  className="text-xs font-bold text-accent-rust hover:underline cursor-pointer"
+                >
+                  Clear Tag
+                </button>
+              )}
+
               <button
-                onClick={() => selectFilter(currentFilter)}
-                className="text-xs font-medium text-blue-500 hover:underline cursor-pointer"
+                onClick={handleRefreshAll}
+                className="p-2 bg-surface border border-border text-ink-muted hover:text-ink rounded-lg transition-all cursor-pointer"
+                title="Refresh Grid"
               >
-                Clear Tag Filter
+                <LuRefreshCw className="text-sm" />
               </button>
-            )}
+            </div>
           </div>
+
+          {/* Sub-Header tags list */}
+          {uniqueTags.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap mb-6">
+              <span className="text-[10px] font-mono font-bold text-ink-muted uppercase tracking-wider flex items-center gap-1"><LuTag /> Tags:</span>
+              {uniqueTags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => selectTag(tag)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                    selectedTag === tag
+                      ? "bg-accent-rust text-white"
+                      : "bg-surface border border-border text-ink-muted hover:bg-bg hover:text-ink"
+                  }`}
+                >
+                  #{tag}
+                </button>
+              ))}
+            </div>
+          )}
 
           {allNotes.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
@@ -448,7 +431,8 @@ function Home() {
                   onPinNote={() => handlePinNote(note)}
                   onArchive={() => handleArchiveNote(note)}
                   onRestore={() => handleRestoreNote(note)}
-                  onClickCard={() => setViewNoteModal({ isShown: true, data: note })}
+                  isLocked={note.isLocked}
+                  onClickCard={() => handleCardClick(note)}
                 />
               ))}
             </div>
@@ -463,22 +447,23 @@ function Home() {
                     : "No notes here. Let's write down something amazing!"
                 }
               />
-              <p className="text-center mt-4 text-gray-500 dark:text-gray-400">
+              <p className="text-center mt-4 text-ink-muted font-medium">
                 {currentFilter === "all" ? "Ready to capture your ideas? Click the '+' button" : ""}
               </p>
             </div>
           )}
         </main>
       </div>
+      <BottomBar />
 
       {/* Add Floating Action Button only if not viewing trash */}
       {currentFilter !== "trash" && (
         <button
-          className="w-14 h-14 flex items-center justify-center rounded-full bg-[#2BB5FF] hover:bg-blue-600 transition-all shadow-lg hover:shadow-xl fixed right-8 bottom-8 z-10 cursor-pointer text-white"
+          className="w-14 h-14 flex items-center justify-center rounded-full bg-accent-rust text-white transition-all shadow-lg hover:shadow-xl hover:scale-105 fixed right-8 bottom-8 z-10 cursor-pointer"
           onClick={handleCreateNewNoteTab}
           title="Add Note"
         >
-          <MdAdd className="text-[28px]" />
+          <LuPlus className="text-2xl" />
         </button>
       )}
 
@@ -488,26 +473,26 @@ function Home() {
         onRequestClose={handleCloseModal}
         style={{
           overlay: {
-            backgroundColor: "rgba(10, 15, 30, 0.4)",
-            backdropFilter: "blur(8px)",
+            backgroundColor: "rgba(43, 37, 32, 0.4)",
+            backdropFilter: "blur(4px)",
             zIndex: 1000
           },
         }}
         contentLabel="Add/Edit Note"
-        className="w-[65%] max-h-[85vh] bg-white/70 dark:bg-slate-900/60 border border-white/30 dark:border-slate-800/80 backdrop-blur-xl rounded-[28px] mx-auto mt-14 p-6 overflow-y-auto max-md:w-[85%] max-sm:w-[95%] shadow-2xl transition-colors"
+        className="w-[70%] max-h-[85vh] bg-surface border border-border rounded-lg mx-auto mt-14 p-6 overflow-y-auto max-md:w-[85%] max-sm:w-[95%] shadow-xl transition-colors"
       >
         {/* Tabs Bar */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-4 border-b border-slate-200 dark:border-slate-800 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-4 border-b border-border scrollbar-none">
           {editorTabs.map((tab) => {
             const isActive = tab._id === activeTabId;
             return (
               <div
                 key={tab._id}
                 onClick={() => setActiveTabId(tab._id)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer select-none shrink-0 ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer select-none shrink-0 ${
                   isActive
-                    ? "bg-blue-600 text-white border-transparent shadow-sm"
-                    : "bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800"
+                    ? "bg-accent-rust text-white border-transparent shadow-sm"
+                    : "bg-surface hover:bg-bg text-ink-muted border-border"
                 }`}
               >
                 <span>📓 {tab.title || "Untitled"}</span>
@@ -517,7 +502,7 @@ function Home() {
                   className="hover:bg-black/10 dark:hover:bg-white/10 rounded-full p-0.5"
                   title="Close Tab"
                 >
-                  <MdClose className="text-xs" />
+                  <LuX className="text-xs" />
                 </button>
               </div>
             );
@@ -527,10 +512,10 @@ function Home() {
           <button
             type="button"
             onClick={handleCreateNewNoteTab}
-            className="flex items-center justify-center p-1.5 rounded-xl border border-dashed border-slate-350 dark:border-slate-700 text-slate-400 hover:text-blue-500 hover:border-blue-500 transition-colors cursor-pointer shrink-0"
+            className="flex items-center justify-center p-1.5 rounded-lg border border-dashed border-border text-ink-muted hover:text-accent-rust hover:border-accent-rust transition-colors cursor-pointer shrink-0"
             title="Open New Tab"
           >
-            <MdAdd className="text-sm" />
+            <LuPlus className="text-sm" />
           </button>
         </div>
 
@@ -552,40 +537,40 @@ function Home() {
         onRequestClose={() => setViewNoteModal({ isShown: false, data: null })}
         style={{
           overlay: {
-            backgroundColor: "rgba(0,0,0,0.3)",
+            backgroundColor: "rgba(43, 37, 32, 0.4)",
             backdropFilter: "blur(4px)",
             zIndex: 1000
           },
         }}
         contentLabel="View Note"
-        className="w-[45%] max-h-[80vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl mx-auto mt-14 p-6 overflow-y-auto max-md:w-[70%] max-sm:w-[90%] shadow-2xl relative transition-colors"
+        className="w-[45%] max-h-[80vh] bg-surface border border-border rounded-lg mx-auto mt-14 p-6 overflow-y-auto max-md:w-[70%] max-sm:w-[90%] shadow-xl relative transition-colors"
       >
         {viewNoteModal.data && (
-          <div className="relative flex flex-col gap-4 text-slate-800 dark:text-slate-100">
+          <div className="relative flex flex-col gap-4 text-ink">
             <button
-              className="w-9 h-9 rounded-full flex items-center justify-center absolute -top-2 -right-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-slate-400 dark:text-slate-500"
+              className="w-9 h-9 rounded-full flex items-center justify-center absolute -top-2 -right-2 hover:bg-bg transition-colors cursor-pointer text-ink-muted"
               onClick={() => setViewNoteModal({ isShown: false, data: null })}
               title="Close"
             >
-              <MdClose className="text-xl" />
+              <LuX className="text-xl" />
             </button>
             
             <div className="pr-8">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">
+              <h2 className="text-2xl font-display font-bold text-ink leading-tight">
                 {viewNoteModal.data.title}
               </h2>
               <div className="flex items-center gap-2 mt-2">
-                <span className="text-[10px] text-slate-500 font-semibold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                <span className="text-[10px] text-ink-muted font-semibold bg-bg px-2 py-0.5 rounded border border-border">
                   {moment(viewNoteModal.data.createdAt).format("Do MMM YYYY")}
                 </span>
                 {viewNoteModal.data.isPinned && (
-                  <span className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded">
+                  <span className="text-[10px] text-accent-rust font-semibold bg-accent-rust/10 px-2 py-0.5 rounded border border-accent-rust/20">
                     Pinned
                   </span>
                 )}
                 {viewNoteModal.data.color && viewNoteModal.data.color !== "#ffffff" && (
                   <span 
-                    className="w-4 h-4 rounded-full border border-slate-300 shadow-sm"
+                    className="w-4 h-4 rounded-full border border-border shadow-sm"
                     style={{ backgroundColor: viewNoteModal.data.color }}
                     title="Note Color"
                   />
@@ -594,7 +579,7 @@ function Home() {
             </div>
 
             <div 
-              className="mt-4 text-sm text-slate-700 dark:text-slate-300 leading-relaxed max-h-[45vh] overflow-y-auto bg-slate-50 dark:bg-slate-950/40 p-4 rounded-lg border border-slate-100 dark:border-slate-800"
+              className="mt-4 text-sm text-ink leading-relaxed max-h-[45vh] overflow-y-auto bg-bg p-4 rounded-lg border border-border"
               dangerouslySetInnerHTML={{ __html: viewNoteModal.data.content }}
             />
 
@@ -603,7 +588,7 @@ function Home() {
                 {viewNoteModal.data.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="text-xs text-blue-500 dark:text-blue-400 font-medium bg-blue-50 dark:bg-blue-950/40 px-2.5 py-0.5 rounded-full"
+                    className="text-xs text-accent-rust font-medium bg-accent-rust/10 px-2.5 py-0.5 rounded-full"
                   >
                     #{tag}
                   </span>
@@ -612,6 +597,59 @@ function Home() {
             )}
           </div>
         )}
+      </Modal>
+
+      {/* PIN Lock Entry Modal */}
+      <Modal
+        isOpen={pinModalOpen}
+        onRequestClose={() => { setPinModalOpen(false); setPendingAction(null); }}
+        style={{
+          overlay: {
+            backgroundColor: "rgba(43, 37, 32, 0.4)",
+            backdropFilter: "blur(4px)",
+            zIndex: 2000
+          }
+        }}
+        contentLabel="Enter PIN"
+        className="w-[320px] bg-surface border border-border rounded-lg mx-auto mt-24 p-5 shadow-xl text-ink relative"
+      >
+        <div className="flex justify-between items-center border-b border-border pb-3 mb-4">
+          <h3 className="font-display font-bold text-sm flex items-center gap-1.5 text-ink">
+            🔒 Locked Private Note
+          </h3>
+          <button 
+            onClick={() => { setPinModalOpen(false); setPendingAction(null); }}
+            className="text-ink-muted hover:text-ink cursor-pointer"
+          >
+            <LuX className="text-lg" />
+          </button>
+        </div>
+
+        <form onSubmit={handleVerifyPin} className="space-y-4">
+          <p className="text-xs text-ink-muted text-center leading-relaxed">
+            Please enter your 4-digit PIN code to view this note.
+          </p>
+
+          <input
+            type="password"
+            maxLength={4}
+            value={enteredPin}
+            onChange={(e) => setEnteredPin(e.target.value.replace(/\D/g, ""))}
+            placeholder="••••"
+            className="w-full text-center text-2xl tracking-widest bg-bg border border-border text-ink rounded-lg py-2.5 outline-none font-bold focus:border-accent-rust"
+            autoFocus
+          />
+
+          {pinError && <p className="text-accent-red text-center text-[10px] font-bold">{pinError}</p>}
+
+          <button
+            type="submit"
+            disabled={enteredPin.length !== 4}
+            className="btn-primary py-2.5 cursor-pointer font-bold text-xs uppercase tracking-wider disabled:opacity-50"
+          >
+            Unlock Note
+          </button>
+        </form>
       </Modal>
     </div>
   );

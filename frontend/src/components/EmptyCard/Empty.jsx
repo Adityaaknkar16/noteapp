@@ -1,4 +1,5 @@
-import React from 'react'
+import React from 'react';
+import PageDecor from '../Doodles/PageDecor';
 
 function EmptyCard({ message }) {
   return (
@@ -70,7 +71,9 @@ function EmptyCard({ message }) {
         </svg>
       </div>
 
-      <p className='w-full max-w-sm text-sm font-semibold text-slate-400 dark:text-slate-500 leading-relaxed'>
+      <PageDecor variant="empty-state" />
+
+      <p className='w-full max-w-sm text-sm font-semibold text-slate-400 dark:text-slate-500 leading-relaxed mt-2'>
         {message}
       </p>
     </div>

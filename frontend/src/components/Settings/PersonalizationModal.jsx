@@ -1,9 +1,24 @@
-import React from "react";
+import React, { useState } from "react";
 import Modal from "react-modal";
-import { MdClose, MdPalette, MdVolumeUp, MdSettings, MdWallpaper } from "react-icons/md";
+import { 
+  LuX, 
+  LuPalette, 
+  LuVolume2, 
+  LuSettings, 
+  LuImage, 
+  LuDatabase,
+  LuDownload,
+  LuUpload
+} from "react-icons/lu";
 import { useSettings } from "./SettingsProvider";
+import axios from "axios";
+import { useAlert } from "../Alert/AlertProvider";
 
 export default function PersonalizationModal({ isOpen, onClose }) {
+  const alert = useAlert();
+  const [importing, setImporting] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
   const {
     theme, setTheme,
     flowerOpacity, setFlowerOpacity,
@@ -16,11 +31,11 @@ export default function PersonalizationModal({ isOpen, onClose }) {
   } = useSettings();
 
   const themes = [
-    { id: "light", name: "☀️ Classic Light", desc: "Clean lined sheets" },
-    { id: "dark", name: "🌙 Modern Dark", desc: "Dark graphite pages" },
-    { id: "cream", name: "🍦 Pastel Cream", desc: "Vintage sepia aesthetic" },
-    { id: "lavender", name: "🌸 Lavender fields", desc: "Cute light purple aura" },
-    { id: "midnight", name: "🌌 Neon Midnight", desc: "Deep space cyber look" }
+    { id: "light", name: "☀️ Classic Light", desc: "Warm paper sheets" },
+    { id: "dark", name: "☕ Espresso Dark", desc: "Cozy dark graphite pages" },
+    { id: "cream", name: "🍦 Sepia Cream", desc: "Vintage warm aesthetic" },
+    { id: "lavender", name: "🌸 Soft Lavender", desc: "Cute light purple aura" },
+    { id: "midnight", name: "🌌 Space Midnight", desc: "Deep dark espresso aura" }
   ];
 
   const fonts = [
@@ -52,30 +67,153 @@ export default function PersonalizationModal({ isOpen, onClose }) {
     }
   };
 
+  // Export JSON Data
+  const handleExportData = async () => {
+    setExporting(true);
+    try {
+      const [notesRes, tasksRes, diaryRes, habitsRes, subjectsRes, eventsRes] = await Promise.all([
+        axios.get("http://localhost:3000/api/note/all", { withCredentials: true }),
+        axios.get("http://localhost:3000/api/task/all", { withCredentials: true }),
+        axios.get("http://localhost:3000/api/diary/all", { withCredentials: true }),
+        axios.get("http://localhost:3000/api/habit/all", { withCredentials: true }),
+        axios.get("http://localhost:3000/api/academic/subjects/all", { withCredentials: true }),
+        axios.get("http://localhost:3000/api/academic/events/all", { withCredentials: true })
+      ]);
+
+      const backupData = {
+        notes: notesRes.data.notes || [],
+        tasks: tasksRes.data.tasks || [],
+        diary: diaryRes.data.entries || [],
+        habits: habitsRes.data.habits || [],
+        subjects: subjectsRes.data.subjects || [],
+        events: eventsRes.data.events || []
+      };
+
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `inkwell_backup_${moment().format("YYYY-MM-DD")}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      alert.success("Data exported successfully!");
+    } catch (err) {
+      alert.error("Export failed: " + err.message);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // Import JSON Data
+  const handleImportData = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      setImporting(true);
+      try {
+        const data = JSON.parse(event.target.result);
+        
+        // Loop and import each item sequentially
+        if (data.notes) {
+          for (const note of data.notes) {
+            await axios.post("http://localhost:3000/api/note/add", {
+              title: note.title,
+              content: note.content,
+              tags: note.tags,
+              color: note.color,
+              paperType: note.paperType,
+              fontFamily: note.fontFamily,
+              penColor: note.penColor,
+              stickers: note.stickers
+            }, { withCredentials: true });
+          }
+        }
+
+        if (data.tasks) {
+          for (const task of data.tasks) {
+            await axios.post("http://localhost:3000/api/task/add", {
+              title: task.title,
+              priority: task.priority,
+              dueDate: task.dueDate
+            }, { withCredentials: true });
+          }
+        }
+
+        if (data.diary) {
+          for (const entry of data.diary) {
+            await axios.post("http://localhost:3000/api/diary/add", {
+              title: entry.title,
+              content: entry.content,
+              mood: entry.mood,
+              date: entry.date,
+              color: entry.color,
+              paperType: entry.paperType,
+              fontFamily: entry.fontFamily,
+              penColor: entry.penColor,
+              stickers: entry.stickers
+            }, { withCredentials: true });
+          }
+        }
+
+        if (data.habits) {
+          for (const habit of data.habits) {
+            await axios.post("http://localhost:3000/api/habit/add", {
+              title: habit.title,
+              description: habit.description,
+              color: habit.color
+            }, { withCredentials: true });
+          }
+        }
+
+        if (data.subjects) {
+          for (const sub of data.subjects) {
+            await axios.post("http://localhost:3000/api/academic/subjects/add", {
+              name: sub.name,
+              color: sub.color,
+              performance: sub.performance,
+              icon: sub.icon
+            }, { withCredentials: true });
+          }
+        }
+
+        alert.success("Data imported successfully! Please refresh pages to sync.");
+        onClose();
+        window.location.reload();
+      } catch (err) {
+        alert.error("Import failed. Verify JSON format.");
+      } finally {
+        setImporting(false);
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       onRequestClose={onClose}
       style={{
         overlay: {
-          backgroundColor: "rgba(0,0,0,0.3)",
-          backdropFilter: "blur(5px)",
+          backgroundColor: "rgba(43, 37, 32, 0.4)",
+          backdropFilter: "blur(4px)",
           zIndex: 1000
         }
       }}
       contentLabel="Personalization Settings"
-      className="w-[500px] max-h-[85vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl mx-auto mt-14 p-6 overflow-y-auto max-sm:w-[90%] shadow-2xl transition-colors select-none"
+      className="w-[500px] max-h-[85vh] bg-surface border border-border rounded-lg mx-auto mt-14 p-6 overflow-y-auto max-sm:w-[90%] shadow-xl transition-colors select-none text-ink"
     >
-      <div className="flex justify-between items-center mb-6 border-b border-slate-150 dark:border-slate-800 pb-3">
-        <h3 className="font-extrabold text-slate-800 dark:text-white text-base flex items-center gap-2">
-          <MdSettings className="text-xl text-blue-500" />
+      <div className="flex justify-between items-center mb-6 border-b border-border pb-3">
+        <h3 className="font-display font-bold text-ink text-base flex items-center gap-2">
+          <LuSettings className="text-xl text-accent-rust" />
           Personalization & Style
         </h3>
         <button
           onClick={onClose}
-          className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-400"
+          className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-bg transition-colors text-ink-muted cursor-pointer"
         >
-          <MdClose className="text-xl" />
+          <LuX className="text-xl" />
         </button>
       </div>
 
@@ -83,8 +221,8 @@ export default function PersonalizationModal({ isOpen, onClose }) {
         
         {/* Theme Grid */}
         <div>
-          <label className="text-[10px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5 mb-3">
-            <MdPalette className="text-sm" /> Workspace Theme
+          <label className="text-[10px] font-mono font-bold text-ink-muted uppercase tracking-widest flex items-center gap-1.5 mb-3">
+            <LuPalette className="text-sm" /> Workspace Theme
           </label>
           <div className="grid grid-cols-2 gap-2.5">
             {themes.map((t) => (
@@ -95,10 +233,10 @@ export default function PersonalizationModal({ isOpen, onClose }) {
                   setTheme(t.id);
                   playPageFlip();
                 }}
-                className={`p-3 rounded-2xl border text-left transition-all hover:scale-102 flex flex-col justify-between cursor-pointer ${
+                className={`p-3 rounded-lg border text-left transition-all hover:scale-102 flex flex-col justify-between cursor-pointer ${
                   theme === t.id
-                    ? "bg-blue-500/10 border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-400 shadow-sm ring-1 ring-blue-500"
-                    : "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-350"
+                    ? "bg-accent-rust/10 border-accent-rust text-accent-rust"
+                    : "border-border hover:bg-bg text-ink"
                 }`}
               >
                 <span className="text-xs font-bold">{t.name}</span>
@@ -110,14 +248,14 @@ export default function PersonalizationModal({ isOpen, onClose }) {
 
         {/* Aesthetics Sliders */}
         <div>
-          <label className="text-[10px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5 mb-3">
-            <MdWallpaper className="text-sm" /> Aesthetics Controls
+          <label className="text-[10px] font-mono font-bold text-ink-muted uppercase tracking-widest flex items-center gap-1.5 mb-3">
+            <LuImage className="text-sm" /> Aesthetics Controls
           </label>
           
-          <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/60 p-4 rounded-2xl flex flex-col gap-4">
+          <div className="bg-bg border border-border p-4 rounded-lg flex flex-col gap-4">
             {/* Flower opacity */}
             <div>
-              <div className="flex justify-between text-xs font-bold text-slate-750 dark:text-slate-300 mb-1">
+              <div className="flex justify-between text-xs font-bold text-ink mb-1">
                 <span>Corner Flowers Opacity</span>
                 <span>{Math.round(flowerOpacity * 100)}%</span>
               </div>
@@ -128,60 +266,43 @@ export default function PersonalizationModal({ isOpen, onClose }) {
                 step="0.05"
                 value={flowerOpacity}
                 onChange={(e) => setFlowerOpacity(Number(e.target.value))}
-                className="w-full h-1.5 bg-slate-200 dark:bg-slate-750 rounded-lg appearance-none cursor-pointer accent-blue-600"
-              />
-            </div>
-
-            {/* Glass Blur */}
-            <div>
-              <div className="flex justify-between text-xs font-bold text-slate-750 dark:text-slate-300 mb-1">
-                <span>Glassmorphism Blur Radius</span>
-                <span>{glassBlur}px</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="24"
-                step="2"
-                value={glassBlur}
-                onChange={(e) => setGlassBlur(Number(e.target.value))}
-                className="w-full h-1.5 bg-slate-200 dark:bg-slate-750 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                className="w-full h-1 bg-border rounded-lg appearance-none cursor-pointer accent-accent-rust"
               />
             </div>
           </div>
         </div>
 
         {/* Audio Effects */}
-        <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/60 rounded-2xl">
+        <div className="flex items-center justify-between p-3 bg-bg border border-border rounded-lg">
           <div className="flex items-center gap-2.5">
-            <MdVolumeUp className="text-lg text-blue-500" />
+            <LuVolume2 className="text-lg text-accent-rust" />
             <div className="flex flex-col">
-              <span className="text-xs font-bold text-slate-750 dark:text-slate-300">Auditory Page Flip SFX</span>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">Plays soft page transitions</span>
+              <span className="text-xs font-bold text-ink">Auditory Page Flip SFX</span>
+              <span className="text-[10px] text-ink-muted leading-tight">Plays soft page transitions</span>
             </div>
           </div>
           <input
             type="checkbox"
             checked={soundEnabled}
             onChange={(e) => handleSoundToggle(e.target.checked)}
-            className="w-9 h-5 rounded-full appearance-none bg-slate-300 dark:bg-slate-700 checked:bg-blue-600 relative cursor-pointer outline-none transition-colors before:content-[''] before:absolute before:h-4 before:w-4 before:rounded-full before:bg-white before:top-0.5 before:left-0.5 before:transition-all checked:before:translate-x-4"
+            className="w-9 h-5 rounded-full appearance-none bg-border checked:bg-accent-rust relative cursor-pointer outline-none transition-colors before:content-[''] before:absolute before:h-4 before:w-4 before:rounded-full before:bg-white before:top-0.5 before:left-0.5 before:transition-all checked:before:translate-x-4"
           />
         </div>
 
         {/* Default Note Settings */}
         <div>
-          <label className="text-[10px] font-bold text-slate-450 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5 mb-3">
+          <label className="text-[10px] font-mono font-bold text-ink-muted uppercase tracking-widest flex items-center gap-1.5 mb-3">
             ✏️ Default Note Presets
           </label>
           
-          <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/60 p-4 rounded-2xl">
+          <div className="grid grid-cols-2 gap-4 bg-bg border border-border p-4 rounded-lg">
             {/* Paper */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Default Paper</span>
+              <span className="text-[10px] text-ink-muted font-bold uppercase tracking-wider">Default Paper</span>
               <select
                 value={defaultPaper}
                 onChange={(e) => setDefaultPaper(e.target.value)}
-                className="bg-white dark:bg-slate-950 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 outline-none text-slate-705 dark:text-slate-200 cursor-pointer"
+                className="bg-surface text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-border outline-none text-ink cursor-pointer"
               >
                 {papers.map((p) => (
                   <option key={p.value} value={p.value}>{p.label}</option>
@@ -191,11 +312,11 @@ export default function PersonalizationModal({ isOpen, onClose }) {
 
             {/* Font */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Default Font</span>
+              <span className="text-[10px] text-ink-muted font-bold uppercase tracking-wider">Default Font</span>
               <select
                 value={defaultFont}
                 onChange={(e) => setDefaultFont(e.target.value)}
-                className="bg-white dark:bg-slate-950 text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 outline-none text-slate-705 dark:text-slate-200 cursor-pointer"
+                className="bg-surface text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-border outline-none text-ink cursor-pointer"
               >
                 {fonts.map((f) => (
                   <option key={f} value={f}>{f}</option>
@@ -204,8 +325,8 @@ export default function PersonalizationModal({ isOpen, onClose }) {
             </div>
 
             {/* Pen Ink color */}
-            <div className="col-span-2 flex flex-col gap-1.5 pt-2 border-t border-slate-150 dark:border-slate-800/60">
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Default Pen Ink</span>
+            <div className="col-span-2 flex flex-col gap-1.5 pt-2 border-t border-border">
+              <span className="text-[10px] text-ink-muted font-bold uppercase tracking-wider">Default Pen Ink</span>
               <div className="flex gap-2 items-center">
                 {penColors.map((c) => (
                   <button
@@ -214,14 +335,47 @@ export default function PersonalizationModal({ isOpen, onClose }) {
                     onClick={() => setDefaultPenColor(c.value)}
                     className={`w-6 h-6 rounded-full border transition-transform hover:scale-110 flex items-center justify-center cursor-pointer ${
                       defaultPenColor === c.value
-                        ? "ring-2 ring-blue-500 border-white"
-                        : "border-slate-300 dark:border-slate-600"
+                        ? "ring-2 ring-accent-rust border-surface"
+                        : "border-border"
                     }`}
                     style={{ backgroundColor: c.value }}
                     title={c.name}
                   />
                 ))}
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Data Management Section */}
+        <div>
+          <label className="text-[10px] font-mono font-bold text-ink-muted uppercase tracking-widest flex items-center gap-1.5 mb-3">
+            <LuDatabase className="text-sm" /> Data Management
+          </label>
+          <div className="bg-bg border border-border p-4 rounded-lg flex flex-col gap-3">
+            <p className="text-[10px] text-ink-muted leading-relaxed">
+              Export all your Inkwell notes, tasks, diary sessions, habits, and schedules into a single JSON file. You can import it later to recover your space.
+            </p>
+            <div className="grid grid-cols-2 gap-3 mt-1">
+              <button
+                type="button"
+                disabled={exporting}
+                onClick={handleExportData}
+                className="btn-primary py-2 text-xs flex items-center justify-center gap-1.5"
+              >
+                <LuDownload className="text-sm" /> {exporting ? "Exporting..." : "Export JSON"}
+              </button>
+
+              <label className="btn-primary py-2 text-xs flex items-center justify-center gap-1.5 bg-accent-sage text-white cursor-pointer hover:brightness-110">
+                <LuUpload className="text-sm" /> {importing ? "Importing..." : "Import JSON"}
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={handleImportData}
+                  disabled={importing}
+                  className="hidden"
+                />
+              </label>
             </div>
           </div>
         </div>

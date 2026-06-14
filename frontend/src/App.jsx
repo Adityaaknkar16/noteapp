@@ -9,6 +9,12 @@ import DiaryPage from './pages/Diary/DiaryPage';
 import HabitsPage from './pages/Habits/HabitsPage';
 import CalendarPage from './pages/Calendar/CalendarPage';
 import SubjectsPage from './pages/Subjects/SubjectsPage';
+import BudgetPage from './pages/Budget/BudgetPage';
+import ShoppingListPage from './pages/Shopping/ShoppingListPage';
+import PantryPage from './pages/Pantry/PantryPage';
+import BillsPage from './pages/Bills/BillsPage';
+import SharedNoteView from './pages/Home/SharedNoteView';
+import SketchpadPage from './pages/Sketchpad/SketchpadPage';
 import { AlertProvider } from './components/Alert/AlertProvider';
 import { SettingsProvider } from './components/Settings/SettingsProvider';
 
@@ -27,6 +33,12 @@ function App() {
             <Route path='/habits' element={<HabitsPage />} />
             <Route path='/calendar' element={<CalendarPage />} />
             <Route path='/subjects' element={<SubjectsPage />} />
+            <Route path='/budget' element={<BudgetPage />} />
+            <Route path='/shopping' element={<ShoppingListPage />} />
+            <Route path='/pantry' element={<PantryPage />} />
+            <Route path='/bills' element={<BillsPage />} />
+            <Route path='/sketchpad' element={<SketchpadPage />} />
+            <Route path='/shared/:token' element={<SharedNoteView />} />
           </Routes>
         </AlertProvider>
       </SettingsProvider>

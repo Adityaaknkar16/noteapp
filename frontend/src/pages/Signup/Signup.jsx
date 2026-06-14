@@ -4,12 +4,13 @@ import PasswordInput from "../../components/input/PasswordInput";
 import { validateEmail } from "../../utlis/helper";
 import axios from "axios";
 import { useAlert } from "../../components/Alert/AlertProvider";
-import { MdPersonAdd, MdMailOutline } from "react-icons/md";
+import { LuUserPlus, LuMail } from "react-icons/lu";
 import { FaGoogle, FaFacebookF } from "react-icons/fa";
-import { HiSparkles } from "react-icons/hi";
 import { useDispatch } from "react-redux";
 import { signInStart, signInSuccess } from "../../redux/userslice/userSlice";
-import plantImg from "../../assets/plant_transparent.png";
+import { toast } from "react-toastify";
+import PageDecor from "../../components/Doodles/PageDecor";
+import { DetailedLeaf } from "../../components/Doodles/Leaves";
 
 function Signup() {
   const [name, setName] = useState("");
@@ -60,65 +61,36 @@ function Signup() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-blue-100 via-blue-200 to-indigo-200 p-4 md:p-8 relative overflow-hidden">
-
-      {/* Decorative background bubbles */}
-      <div className="absolute top-6 left-6 w-16 h-16 rounded-full border-4 border-blue-300/50 animate-pulse" />
-      <div className="absolute top-16 left-20 w-8 h-8 rounded-full border-4 border-blue-400/40" />
-      <div className="absolute bottom-10 left-10 w-24 h-24 rounded-full border-4 border-blue-300/40 animate-pulse" />
-      <div className="absolute bottom-20 left-32 w-10 h-10 rounded-full border-4 border-blue-400/30" />
-      <div className="absolute top-10 right-10 w-10 h-10 rounded-full border-4 border-blue-300/40" />
-      <div className="absolute bottom-12 right-16 w-16 h-16 rounded-full border-4 border-blue-300/30 animate-pulse" />
-      <div className="absolute top-1/3 right-6 w-6 h-6 rounded-full bg-blue-300/30" />
-
-      {/* Floating blob glows */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-300/20 rounded-full blur-[120px]" />
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-300/20 rounded-full blur-[120px]" />
-
+    <div className="min-h-screen w-full flex items-center justify-center bg-bg text-ink p-4 md:p-8 transition-colors relative overflow-hidden">
+      <PageDecor variant="signup" />
       {/* Main Card */}
-      <div className="w-full max-w-5xl flex flex-col md:flex-row rounded-[32px] shadow-2xl overflow-hidden relative bg-white/10 backdrop-blur-sm border border-white/40" style={{ minHeight: '600px' }}>
-
-        {/* ── Left: Form ── */}
-        <div className="w-full md:w-[48%] flex flex-col justify-center p-8 lg:p-12 relative"
-          style={{ background: 'linear-gradient(145deg, #6fa8f5 0%, #4285f4 60%, #3b72e0 100%)' }}>
-
-          {/* Card inner highlight */}
-          <div className="absolute top-0 left-0 right-0 h-px bg-white/30" />
-          <div className="absolute top-0 left-0 bottom-0 w-px bg-white/20" />
-
-          {/* Decorative dots */}
-          <div className="absolute top-4 right-4 flex gap-2 opacity-30">
-            <div className="w-2 h-2 rounded-full bg-white" />
-            <div className="w-2 h-2 rounded-full bg-white" />
-            <div className="w-2 h-2 rounded-full bg-white" />
-          </div>
-
-          <div className="mb-7 text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/20 mb-4 backdrop-blur-sm border border-white/30">
-              <MdPersonAdd className="text-white text-2xl" />
-            </div>
-            <h2 className="text-3xl font-extrabold text-white tracking-tight mb-1">Register Now</h2>
-            <p className="text-blue-100 text-xs font-medium">Create your free account today</p>
+      <div className="w-full max-w-4xl flex flex-col md:flex-row paper-card overflow-hidden relative border border-border" style={{ minHeight: '560px' }}>
+        
+        {/* Left Side: Form */}
+        <div className="w-full md:w-[50%] flex flex-col justify-center p-8 lg:p-12 bg-surface border-r border-border">
+          <div className="mb-6 text-center">
+            <h2 className="text-3xl font-display font-bold text-ink tracking-tight mb-2">Create Account</h2>
+            <p className="text-ink-muted text-xs font-medium">Join Inkwell and set up your workspace</p>
           </div>
 
           <form onSubmit={handleSignUp} className="space-y-4">
             <div className="relative">
-              <MdPersonAdd className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
+              <LuUserPlus className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted text-lg" />
               <input
                 type="text"
-                placeholder="Full Name"
-                className="w-full text-sm bg-white text-slate-700 placeholder-slate-400 border-none outline-none pl-11 pr-4 py-3.5 rounded-2xl shadow-sm focus:ring-4 focus:ring-blue-600/20 font-medium transition-all"
+                placeholder="Username"
+                className="input-box pl-11"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
             </div>
 
             <div className="relative">
-              <MdMailOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg" />
+              <LuMail className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-muted text-lg" />
               <input
                 type="text"
                 placeholder="Email Address"
-                className="w-full text-sm bg-white text-slate-700 placeholder-slate-400 border-none outline-none pl-11 pr-4 py-3.5 rounded-2xl shadow-sm focus:ring-4 focus:ring-blue-600/20 font-medium transition-all"
+                className="input-box pl-11"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -126,113 +98,90 @@ function Signup() {
 
             <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
 
-            {error && <div className="bg-red-500/20 border border-red-400/30 text-red-100 text-xs px-4 py-2.5 rounded-xl font-semibold">{error}</div>}
+            {error && <div className="bg-accent-red/10 border border-accent-red/20 text-accent-red text-xs px-4 py-2.5 rounded-lg font-semibold">{error}</div>}
 
-            <button type="submit" disabled={isLoading}
-              className="w-full bg-[#1a3a8f] hover:bg-[#152e73] text-white font-extrabold py-3.5 rounded-2xl shadow-lg transition-all duration-200 cursor-pointer disabled:opacity-70 tracking-widest uppercase text-xs mt-2 border border-white/10">
+            <button type="submit" disabled={isLoading} className="btn-primary w-full mt-2">
               {isLoading ? "Creating Account..." : "Register"}
             </button>
 
             <div className="flex items-center gap-3 py-1">
-              <div className="flex-1 h-px bg-white/20" />
-              <span className="text-[10px] font-bold text-blue-100 uppercase tracking-widest">Or sign up with</span>
-              <div className="flex-1 h-px bg-white/20" />
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-[10px] font-bold text-ink-muted uppercase tracking-widest">Or sign up with</span>
+              <div className="flex-1 h-px bg-border" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <button type="button" onClick={() => triggerSocialMock("Facebook")}
-                className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-[#1877f2] font-bold py-3 px-4 rounded-xl shadow-sm transition-colors cursor-pointer text-sm border border-white/50">
-                <FaFacebookF className="text-sm" /><span>Facebook</span>
+                className="flex items-center justify-center gap-2 bg-surface hover:bg-bg text-ink border border-border font-bold py-2.5 px-4 rounded-lg transition-colors cursor-pointer text-sm">
+                <FaFacebookF className="text-sm text-accent-blue" /><span>Facebook</span>
               </button>
               <button type="button" onClick={() => triggerSocialMock("Google")}
-                className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-[#ea4335] font-bold py-3 px-4 rounded-xl shadow-sm transition-colors cursor-pointer text-sm border border-white/50">
-                <FaGoogle className="text-sm" /><span>Google</span>
+                className="flex items-center justify-center gap-2 bg-surface hover:bg-bg text-ink border border-border font-bold py-2.5 px-4 rounded-lg transition-colors cursor-pointer text-sm">
+                <FaGoogle className="text-sm text-accent-rust" /><span>Google</span>
               </button>
             </div>
 
-            <p className="text-sm text-center text-blue-100 font-semibold pt-2">
+            <p className="text-sm text-center text-ink-muted font-semibold pt-2">
               Already have an account?{" "}
-              <Link to="/login" className="text-white font-extrabold hover:underline">Login now</Link>
+              <Link to="/login" className="text-accent-rust font-extrabold hover:underline">Login now</Link>
             </p>
           </form>
         </div>
 
-        {/* ── Right: Illustration ── */}
-        <div className="hidden md:flex flex-1 relative items-center justify-center overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, #e8f0ff 0%, #c8daff 50%, #b8d0ff 100%)' }}>
-
-          {/* Concentric circles */}
-          <div className="absolute w-[520px] h-[520px] rounded-full"
-            style={{ background: 'rgba(66, 133, 244, 0.15)', boxShadow: 'inset 0 0 60px rgba(66,133,244,0.1)' }} />
-          <div className="absolute w-[420px] h-[420px] rounded-full"
-            style={{ background: 'rgba(66, 133, 244, 0.25)' }} />
-          <div className="absolute w-[330px] h-[330px] rounded-full"
-            style={{ background: 'rgba(59, 114, 224, 0.45)' }} />
-          <div className="absolute w-[240px] h-[240px] rounded-full"
-            style={{ background: 'rgba(26, 86, 219, 0.65)' }} />
-          <div className="absolute w-[150px] h-[150px] rounded-full"
-            style={{ background: 'rgba(17, 58, 160, 0.75)' }} />
-
-          {/* Floating decoration */}
-          <div className="absolute top-8 right-10 w-10 h-10 rounded-full border-4 border-blue-400/30 animate-bounce" style={{ animationDuration: '3s' }} />
-          <div className="absolute bottom-12 right-8 w-7 h-7 rounded-full border-4 border-blue-400/40" />
-          <div className="absolute top-1/2 right-4 w-5 h-5 rounded-full bg-blue-300/40" />
-          <div className="absolute top-8 left-8 w-6 h-6 rounded-full border-2 border-blue-300/30 animate-pulse" />
-          <div className="absolute bottom-8 left-12 w-4 h-4 rounded-full bg-blue-200/50" />
-
-          {/* Plant illustration - transparent PNG */}
-          <img
-            src={plantImg}
-            alt="3D Plant"
-            className="relative z-10 w-64 h-64 object-contain"
-            style={{ filter: 'drop-shadow(0 20px 40px rgba(26,86,219,0.4))' }}
-          />
-
-          {/* Feature badges */}
-          <div className="absolute bottom-8 left-6 bg-white/80 backdrop-blur-sm rounded-2xl px-3 py-2 shadow-lg border border-white/60 flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-blue-500 flex items-center justify-center">
-              <HiSparkles className="text-white text-xs" />
-            </div>
-            <span className="text-xs font-bold text-slate-700">Smart Notes</span>
-          </div>
-          <div className="absolute top-10 left-6 bg-white/80 backdrop-blur-sm rounded-2xl px-3 py-2 shadow-lg border border-white/60 flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-teal-500 flex items-center justify-center">
-              <MdPersonAdd className="text-white text-xs" />
-            </div>
-            <span className="text-xs font-bold text-slate-700">Join Free</span>
+        {/* Right Side: Redesigned Aesthetic Illustration panel */}
+        <div className="hidden md:flex flex-1 relative flex-col justify-between p-12 bg-bg overflow-hidden border-l border-border select-none">
+          <div className="text-[10px] font-mono uppercase tracking-[0.3em] text-ink-muted">Inkwell Journal Co.</div>
+          
+          <div className="my-auto z-10 relative">
+            <h1 className="text-5xl font-display font-black text-ink leading-tight">
+              A blank page <br />
+              <span className="text-accent-sage italic font-normal font-handwriting">full of hope</span> <br />
+              awaits you.
+            </h1>
+            <p className="text-xs text-ink-muted mt-6 max-w-sm leading-relaxed">
+              Organize your academic schedules, project tasks, personal diary entries, and habit statistics in a unified organic workspace.
+            </p>
           </div>
 
-          <div className="absolute top-4 right-1/2 translate-x-1/2 text-blue-800/40 font-black text-xs uppercase tracking-[0.4em]">Notebook Pro</div>
+          <div className="flex items-center justify-between text-[10px] font-mono text-ink-muted border-t border-border pt-4 mt-8">
+            <span>© 2026 INKWELL</span>
+            <span>SECURE VAULT</span>
+          </div>
+
+          {/* Plant overlay subtle decoration */}
+          <div className="absolute bottom-[-5%] right-[-5%] opacity-20 pointer-events-none">
+            <DetailedLeaf size="200px" color="var(--accent-sage)" rotate={35} />
+          </div>
         </div>
       </div>
 
-      {/* Social Modal */}
+      {/* Social Signup Modal */}
       {showSocialModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/30 backdrop-blur-sm">
+          <div className="bg-surface rounded-xl p-8 max-w-sm w-full shadow-lg border border-border">
             <div className="flex items-center gap-3 mb-6">
-              <div className={`p-2.5 rounded-xl ${socialProvider === 'Google' ? 'bg-red-50 text-[#ea4335]' : 'bg-blue-50 text-[#1877f2]'}`}>
-                {socialProvider === 'Google' ? <FaGoogle className="text-xl" /> : <FaFacebookF className="text-xl" />}
+              <div className={`p-2.5 rounded-lg bg-bg text-ink`}>
+                {socialProvider === 'Google' ? <FaGoogle className="text-lg text-accent-rust" /> : <FaFacebookF className="text-lg text-accent-blue" />}
               </div>
               <div>
-                <h3 className="font-extrabold text-lg text-slate-800">Sign up with {socialProvider}</h3>
-                <p className="text-xs text-slate-500">Select an account to continue</p>
+                <h3 className="font-display font-bold text-lg text-ink">Sign up with {socialProvider}</h3>
+                <p className="text-xs text-ink-muted">Select an account to continue</p>
               </div>
             </div>
             <div className="space-y-3">
               {[["Aditya Kanakar", "aditya@example.com"], ["Guest User", "guest.noteapp@gmail.com"]].map(([name, mail]) => (
                 <button key={mail} type="button" onClick={() => handleSocialSelect(name, mail)}
-                  className="w-full text-left p-3.5 rounded-xl hover:bg-slate-50 border border-slate-200 hover:border-slate-300 transition-all flex items-center gap-3 cursor-pointer">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white font-bold text-sm shadow">{name[0]}</div>
+                  className="w-full text-left p-3 rounded-lg hover:bg-bg border border-border transition-all flex items-center gap-3 cursor-pointer">
+                  <div className="w-9 h-9 rounded-full bg-accent-rust flex items-center justify-center text-white font-bold text-sm shadow">{name[0]}</div>
                   <div>
-                    <div className="font-bold text-sm text-slate-800">{name}</div>
-                    <div className="text-xs text-slate-500">{mail}</div>
+                    <div className="font-bold text-sm text-ink">{name}</div>
+                    <div className="text-xs text-ink-muted">{mail}</div>
                   </div>
                 </button>
               ))}
             </div>
             <button type="button" onClick={() => setShowSocialModal(false)}
-              className="mt-5 w-full text-center text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider cursor-pointer py-2">
+              className="mt-5 w-full text-center text-xs font-bold text-ink-muted hover:text-ink transition-colors uppercase tracking-wider cursor-pointer py-2">
               Cancel
             </button>
           </div>

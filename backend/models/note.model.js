@@ -1,29 +1,25 @@
 import mongoose from "mongoose";
 
-
 const noteSchema = new mongoose.Schema({
    title:{
      type:String,
-    requried:true,
+     required:true,
    },
-
    content:{
      type:String,
-    requried:true,
+     required:true,
    },
-
-    tags:{
+   tags:{
      type:[String],
-   default:[]
+     default:[]
    },
-
    isPinned:{
-    type: Boolean,
-    default: false
+     type: Boolean,
+     default: false
    },
    color:{
-    type: String,
-    default: "#ffffff"
+     type: String,
+     default: "#ffffff"
    },
    paperType: {
      type: String,
@@ -42,32 +38,59 @@ const noteSchema = new mongoose.Schema({
      default: []
    },
    isArchived:{
-    type: Boolean,
-    default: false
+     type: Boolean,
+     default: false
    },
    isTrashed:{
-    type: Boolean,
-    default: false
+     type: Boolean,
+     default: false
    },
    userId :{
-    type:String,
-    requried:true
-
+     type:String,
+     required:true
    },
    collaborators: {
-    type: [String],
-    default: []
+     type: [String],
+     default: []
    },
    lastEditedBy: {
-    type: String
+     type: String
+   },
+   
+   // Voice Notes attachment support (base64 audio data URIs)
+   // NOTE: In production with many users, these should move to proper file storage (e.g. Cloudinary)
+   voiceNotes: {
+     type: [String],
+     default: []
+   },
+
+   // Sketches attachment support (base64 PNG data URIs)
+   sketches: {
+     type: [String],
+     default: []
+   },
+
+   // PIN lock parameters
+   isLocked: {
+     type: Boolean,
+     default: false
+   },
+   pinHash: {
+     type: String,
+     default: null
+   },
+
+   // Share Token support (unauthenticated read-only public links)
+   shareToken: {
+     type: String,
+     default: null
    },
 
    createdAt:{
-    type:Date,
-    default: Date.now()
+     type:Date,
+     default: Date.now
    }
-})
+});
 
-const Note =mongoose.model("Note",noteSchema)
-
-export default Note
+const Note = mongoose.model("Note", noteSchema);
+export default Note;

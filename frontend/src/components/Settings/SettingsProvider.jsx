@@ -103,6 +103,8 @@ export const SettingsProvider = ({ children }) => {
     }
   };
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   return (
     <SettingsContext.Provider value={{
       theme, setTheme,
@@ -112,7 +114,8 @@ export const SettingsProvider = ({ children }) => {
       defaultFont, setDefaultFont,
       defaultPenColor, setDefaultPenColor,
       soundEnabled, setSoundEnabled,
-      playPageFlip
+      playPageFlip,
+      isSidebarOpen, setIsSidebarOpen
     }}>
       {children}
     </SettingsContext.Provider>

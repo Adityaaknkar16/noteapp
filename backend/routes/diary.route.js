@@ -1,6 +1,13 @@
 import express from "express";
 import { verifyToken } from "../utilies/verifyUser.js";
-import { addDiaryEntry, getDiaryEntries, editDiaryEntry, deleteDiaryEntry, getStats } from "../controller/diary.controller.js";
+import { 
+  addDiaryEntry, 
+  getDiaryEntries, 
+  editDiaryEntry, 
+  deleteDiaryEntry, 
+  getStats,
+  getMonthlyRecap
+} from "../controller/diary.controller.js";
 
 const router = express.Router();
 
@@ -9,5 +16,6 @@ router.get("/all", verifyToken, getDiaryEntries);
 router.post("/edit/:entryId", verifyToken, editDiaryEntry);
 router.delete("/delete/:entryId", verifyToken, deleteDiaryEntry);
 router.get("/stats", verifyToken, getStats);
+router.get("/recap", verifyToken, getMonthlyRecap);
 
 export default router;

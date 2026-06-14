@@ -1,21 +1,22 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
+import Sidebar from "../../components/Sidebar/Sidebar";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAlert } from "../../components/Alert/AlertProvider";
-import FlowerDecor from "../../components/FlowerDecor/FlowerDecor";
+import PageDecor from "../../components/Doodles/PageDecor";
+import BottomBar from "../../components/BottomBar/BottomBar";
 import { 
-  MdOutlineStickyNote2, 
-  MdCheckCircle, 
-  MdBook, 
-  MdDelete, 
-  MdAdd, 
-  MdClose, 
-  MdModeEditOutline,
-  MdLocalFireDepartment,
-  MdOutlineDashboard
-} from "react-icons/md";
+  LuPlus, 
+  LuX, 
+  LuTrash2, 
+  LuFlame, 
+  LuCalendar,
+  LuSparkles,
+  LuPencil
+} from "react-icons/lu";
+import moment from "moment";
 
 function HabitsPage() {
   const navigate = useNavigate();
@@ -30,14 +31,25 @@ function HabitsPage() {
   // Form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [color, setColor] = useState("#3B82F6");
+  const [color, setColor] = useState("var(--accent-rust)");
   const [editHabitId, setEditHabitId] = useState(null);
 
-  // Generate last 15 days for completion grid display
+  // Custom Frequency states
+  const [frequencyType, setFrequencyType] = useState("daily"); // 'daily', 'weekdays', 'weekly'
+  const [selectedWeekdays, setSelectedWeekdays] = useState([]); // Array of 'Mon', 'Tue', etc.
+  const [timesPerWeek, setTimesPerWeek] = useState(3);
+
+  // Local storage cache for habit frequencies
+  const [habitFrequencies, setHabitFrequencies] = useState(() => {
+    return JSON.parse(localStorage.getItem("inkwell_habit_frequencies") || "{}");
+  });
+
+  // Generate last 15 days for quick checklist
   const [lastDays, setLastDays] = useState([]);
+  // Generate last 90 days for heatmap
+  const [last90Days, setLast90Days] = useState([]);
 
   useEffect(() => {
-    // Generate dates in YYYY-MM-DD format (local timezone)
     const dates = [];
     for (let i = 14; i >= 0; i--) {
       const d = new Date();
@@ -49,6 +61,16 @@ function HabitsPage() {
       });
     }
     setLastDays(dates);
+
+    const heatmapDates = [];
+    for (let i = 89; i >= 0; i--) {
+      const d = moment().subtract(i, 'days');
+      heatmapDates.push({
+        dateStr: d.format("YYYY-MM-DD"),
+        dayNum: d.date()
+      });
+    }
+    setLast90Days(heatmapDates);
   }, []);
 
   useEffect(() => {
@@ -59,6 +81,10 @@ function HabitsPage() {
       fetchHabits();
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    localStorage.setItem("inkwell_habit_frequencies", JSON.stringify(habitFrequencies));
+  }, [habitFrequencies]);
 
   const fetchHabits = async () => {
     try {
@@ -83,6 +109,17 @@ function HabitsPage() {
       }, { withCredentials: true });
 
       if (res.data.success) {
+        const newHabit = res.data.habit;
+        // Save frequency settings locally
+        setHabitFrequencies(prev => ({
+          ...prev,
+          [newHabit._id]: {
+            type: frequencyType,
+            weekdays: selectedWeekdays,
+            times: timesPerWeek
+          }
+        }));
+
         alert.success("Habit added!");
         resetForm(); setIsAddOpen(false); fetchHabits();
       }
@@ -103,6 +140,16 @@ function HabitsPage() {
       }, { withCredentials: true });
 
       if (res.data.success) {
+        // Update frequency settings locally
+        setHabitFrequencies(prev => ({
+          ...prev,
+          [editHabitId]: {
+            type: frequencyType,
+            weekdays: selectedWeekdays,
+            times: timesPerWeek
+          }
+        }));
+
         alert.success("Habit updated!");
         resetForm(); setIsEditOpen(false); fetchHabits();
       }
@@ -117,6 +164,9 @@ function HabitsPage() {
       const res = await axios.delete(`http://localhost:3000/api/habit/delete/${habitId}`, { withCredentials: true });
       if (res.data.success) {
         alert.success("Habit deleted");
+        const updatedFreqs = { ...habitFrequencies };
+        delete updatedFreqs[habitId];
+        setHabitFrequencies(updatedFreqs);
         fetchHabits();
       }
     } catch (error) {
@@ -140,128 +190,83 @@ function HabitsPage() {
     setTitle(habit.title);
     setDescription(habit.description);
     setColor(habit.color);
+
+    const freq = habitFrequencies[habit._id] || { type: 'daily', weekdays: [], times: 3 };
+    setFrequencyType(freq.type);
+    setSelectedWeekdays(freq.weekdays);
+    setTimesPerWeek(freq.times);
+
     setIsEditOpen(true);
   };
 
   const resetForm = () => {
     setTitle("");
     setDescription("");
-    setColor("#3B82F6");
+    setColor("var(--accent-rust)");
     setEditHabitId(null);
+    setFrequencyType("daily");
+    setSelectedWeekdays([]);
+    setTimesPerWeek(3);
+  };
+
+  const toggleWeekday = (day) => {
+    if (selectedWeekdays.includes(day)) {
+      setSelectedWeekdays(prev => prev.filter(d => d !== day));
+    } else {
+      setSelectedWeekdays(prev => [...prev, day]);
+    }
   };
 
   const colorsList = [
-    "#3B82F6", // Blue
-    "#10B981", // Emerald
-    "#8B5CF6", // Violet
-    "#EC4899", // Pink
-    "#F59E0B", // Amber
-    "#EF4444", // Red
-    "#06B6D4", // Cyan
+    "var(--accent-rust)",
+    "var(--accent-sage)",
+    "var(--accent-ochre)",
+    "var(--accent-blue)",
+    "var(--accent-red)",
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100 transition-colors duration-300 relative overflow-hidden">
-      {/* Decorative background glows */}
-      <div className="absolute top-[-10%] right-[-5%] w-80 h-80 rounded-full bg-blue-400/10 dark:bg-blue-500/5 blur-[90px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-5%] w-80 h-80 rounded-full bg-purple-400/10 dark:bg-purple-500/5 blur-[90px] pointer-events-none" />
-      <FlowerDecor position="bottom-right" size="md" opacity={0.13} />
+    <div className="h-screen bg-bg flex flex-col text-ink transition-colors duration-300 relative overflow-hidden">
+      <PageDecor variant="habits" />
 
       <Navbar userInfo={userInfo} />
 
-      <div className="flex-1 flex max-md:flex-col relative z-1">
-        {/* Left Sidebar Layout */}
-        <aside className="w-64 border-r border-slate-200/60 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-6 flex flex-col gap-6 shrink-0 max-md:hidden transition-colors">
-          <div>
-            <h5 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Workspace</h5>
-            <div className="flex flex-col gap-1.5">
-              <button
-                onClick={() => navigate("/")}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 w-full text-left transition-all"
-              >
-                <MdOutlineDashboard className="text-lg text-blue-500/70 dark:text-blue-400/80" />
-                Dashboard
-              </button>
-              <button
-                onClick={() => navigate("/notes")}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 w-full text-left transition-all"
-              >
-                <MdOutlineStickyNote2 className="text-lg text-emerald-500/70 dark:text-emerald-400/80" />
-                Notes Grid
-              </button>
-              <button
-                onClick={() => navigate("/tasks")}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 w-full text-left transition-all"
-              >
-                <MdCheckCircle className="text-lg text-violet-500/70 dark:text-violet-400/80" />
-                My Tasks
-              </button>
-              <button
-                onClick={() => navigate("/diary")}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 w-full text-left transition-all"
-              >
-                <MdBook className="text-lg text-pink-500/70 dark:text-pink-400/80" />
-                Daily Diary
-              </button>
-              <button
-                onClick={() => navigate("/habits")}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold bg-orange-500/10 dark:bg-orange-500/15 text-orange-600 dark:text-orange-400 w-full text-left transition-all border border-orange-500/20 shadow-sm"
-              >
-                <MdLocalFireDepartment className="text-lg text-orange-500" />
-                Habit Tracker
-              </button>
-              <button
-                onClick={() => navigate("/calendar")}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 w-full text-left transition-all"
-              >
-                <MdOutlineDashboard className="text-lg text-blue-500/70 dark:text-blue-400/80" />
-                Calendar
-              </button>
-              <button
-                onClick={() => navigate("/subjects")}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 w-full text-left transition-all"
-              >
-                <MdOutlineDashboard className="text-lg text-slate-400" />
-                Subjects
-              </button>
-            </div>
-          </div>
-        </aside>
+      <div className="flex-1 flex max-md:flex-col relative z-1 overflow-hidden">
+        <Sidebar />
 
         {/* Habits Main Area */}
-        <main className="flex-1 p-8 overflow-y-auto">
+        <main className="flex-1 p-4 sm:p-8 pb-24 sm:pb-8 overflow-y-auto">
           <div className="max-w-5xl mx-auto">
             {/* Header Toolbar */}
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-6 flex-wrap gap-4 border-b border-border pb-4">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Habit Tracker</h1>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Consistency builds character. Monitor your streaks daily!</p>
+                <h1 className="text-2xl sm:text-3xl font-display font-bold text-ink">Habit Tracker</h1>
+                <p className="text-xs text-ink-muted mt-1 font-medium">Consistency builds character. Monitor your streaks daily!</p>
               </div>
               <button
                 onClick={() => { resetForm(); setIsAddOpen(true); }}
-                className="flex items-center gap-1.5 px-4 py-2 bg-[#2BB5FF] hover:bg-blue-600 text-white rounded-lg text-sm font-semibold cursor-pointer shadow-sm transition-all"
+                className="flex items-center gap-1.5 px-4 py-2 bg-accent-rust text-white rounded-lg text-xs font-bold cursor-pointer hover:brightness-110 shadow-sm"
               >
-                <MdAdd className="text-lg" />
-                Add Habit
+                <LuPlus className="text-sm" /> Add Habit
               </button>
             </div>
 
             {/* Add Habit Modal */}
             {isAddOpen && (
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 mb-6 shadow-md relative transition-colors max-w-xl">
+              <div className="bg-surface border border-border rounded-lg p-5 mb-6 shadow-md relative transition-colors max-w-xl text-ink">
                 <button
                   onClick={() => setIsAddOpen(false)}
-                  className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+                  className="absolute top-4 right-4 text-ink-muted hover:text-ink cursor-pointer"
                 >
-                  <MdClose className="text-lg" />
+                  <LuX className="text-lg" />
                 </button>
-                <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-4">Create New Habit</h3>
+                <h3 className="font-display font-bold text-ink text-sm mb-4">Create New Habit</h3>
                 <form onSubmit={handleAddHabit} className="flex flex-col gap-4">
                   <div>
                     <input
                       type="text"
                       placeholder="Habit name (e.g. Read 10 Pages, Drink 3L Water)"
-                      className="input-box border border-slate-300 dark:border-slate-700 px-4 py-2.5 rounded-lg w-full outline-none bg-transparent text-slate-800 dark:text-slate-100"
+                      className="input-box"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                     />
@@ -270,23 +275,73 @@ function HabitsPage() {
                     <input
                       type="text"
                       placeholder="Description/Why this is important (optional)"
-                      className="input-box border border-slate-300 dark:border-slate-700 px-4 py-2.5 rounded-lg w-full outline-none bg-transparent text-slate-800 dark:text-slate-100"
+                      className="input-box"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                     />
                   </div>
+
+                  {/* Frequency Customizer */}
+                  <div className="border border-border p-3.5 rounded-lg bg-bg">
+                    <label className="text-[10px] font-mono font-bold text-ink-muted uppercase tracking-widest block mb-2">Configure Frequency</label>
+                    <div className="flex gap-2 mb-3">
+                      {['daily', 'weekdays', 'weekly'].map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => setFrequencyType(type)}
+                          className={`px-3 py-1 rounded text-xs font-semibold capitalize border ${
+                            frequencyType === type ? 'bg-accent-rust border-accent-rust text-white' : 'bg-surface border-border text-ink-muted'
+                          }`}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+
+                    {frequencyType === 'weekdays' && (
+                      <div className="flex gap-1.5 flex-wrap">
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => toggleWeekday(day)}
+                            className={`w-9 h-8 rounded text-xs font-bold border ${
+                              selectedWeekdays.includes(day) ? 'bg-accent-sage border-accent-sage text-white' : 'bg-surface border-border text-ink-muted'
+                            }`}
+                          >
+                            {day.slice(0, 1)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {frequencyType === 'weekly' && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-ink-muted">Times per week:</span>
+                        <input
+                          type="number"
+                          min="1"
+                          max="7"
+                          value={timesPerWeek}
+                          onChange={(e) => setTimesPerWeek(Number(e.target.value))}
+                          className="w-16 bg-surface border border-border rounded px-2.5 py-1 text-xs text-ink outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+
                   <div>
-                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-2">Theme Color</label>
-                    <div className="flex gap-2">
+                    <label className="text-[10px] uppercase font-mono font-bold text-ink-muted block mb-1.5">Color Tag</label>
+                    <div className="flex gap-2.5">
                       {colorsList.map((col) => (
                         <button
                           key={col}
                           type="button"
-                          className="w-8 h-8 rounded-full border-2 transition-all"
+                          className="w-8 h-8 rounded-full border-2 transition-all cursor-pointer"
                           style={{
                             backgroundColor: col,
-                            borderColor: color === col ? "#fff" : "transparent",
-                            boxShadow: color === col ? "0 0 0 2px " + col : "none"
+                            borderColor: color === col ? "var(--ink)" : "transparent"
                           }}
                           onClick={() => setColor(col)}
                         />
@@ -295,7 +350,7 @@ function HabitsPage() {
                   </div>
                   <button
                     type="submit"
-                    className="py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm cursor-pointer shadow transition-all"
+                    className="btn-primary w-full"
                   >
                     Save Habit
                   </button>
@@ -305,20 +360,19 @@ function HabitsPage() {
 
             {/* Edit Habit Modal */}
             {isEditOpen && (
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 mb-6 shadow-md relative transition-colors max-w-xl">
+              <div className="bg-surface border border-border rounded-lg p-5 mb-6 shadow-md relative transition-colors max-w-xl text-ink">
                 <button
                   onClick={() => setIsEditOpen(false)}
-                  className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+                  className="absolute top-4 right-4 text-ink-muted hover:text-ink cursor-pointer"
                 >
-                  <MdClose className="text-lg" />
+                  <LuX className="text-lg" />
                 </button>
-                <h3 className="font-bold text-slate-900 dark:text-white text-sm mb-4">Edit Habit</h3>
+                <h3 className="font-display font-bold text-ink text-sm mb-4">Edit Habit Details</h3>
                 <form onSubmit={handleEditHabit} className="flex flex-col gap-4">
                   <div>
                     <input
                       type="text"
-                      placeholder="Habit name"
-                      className="input-box border border-slate-300 dark:border-slate-700 px-4 py-2.5 rounded-lg w-full outline-none bg-transparent text-slate-800 dark:text-slate-100"
+                      className="input-box"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                     />
@@ -326,24 +380,73 @@ function HabitsPage() {
                   <div>
                     <input
                       type="text"
-                      placeholder="Description/Why this is important"
-                      className="input-box border border-slate-300 dark:border-slate-700 px-4 py-2.5 rounded-lg w-full outline-none bg-transparent text-slate-800 dark:text-slate-100"
+                      className="input-box"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                     />
                   </div>
+
+                  {/* Frequency Customizer */}
+                  <div className="border border-border p-3.5 rounded-lg bg-bg">
+                    <label className="text-[10px] font-mono font-bold text-ink-muted uppercase tracking-widest block mb-2">Configure Frequency</label>
+                    <div className="flex gap-2 mb-3">
+                      {['daily', 'weekdays', 'weekly'].map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => setFrequencyType(type)}
+                          className={`px-3 py-1 rounded text-xs font-semibold capitalize border ${
+                            frequencyType === type ? 'bg-accent-rust border-accent-rust text-white' : 'bg-surface border-border text-ink-muted'
+                          }`}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+
+                    {frequencyType === 'weekdays' && (
+                      <div className="flex gap-1.5 flex-wrap">
+                        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => toggleWeekday(day)}
+                            className={`w-9 h-8 rounded text-xs font-bold border ${
+                              selectedWeekdays.includes(day) ? 'bg-accent-sage border-accent-sage text-white' : 'bg-surface border-border text-ink-muted'
+                            }`}
+                          >
+                            {day.slice(0, 1)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {frequencyType === 'weekly' && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-ink-muted">Times per week:</span>
+                        <input
+                          type="number"
+                          min="1"
+                          max="7"
+                          value={timesPerWeek}
+                          onChange={(e) => setTimesPerWeek(Number(e.target.value))}
+                          className="w-16 bg-surface border border-border rounded px-2.5 py-1 text-xs text-ink outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+
                   <div>
-                    <label className="text-[10px] uppercase font-bold text-slate-400 block mb-2">Theme Color</label>
-                    <div className="flex gap-2">
+                    <label className="text-[10px] uppercase font-mono font-bold text-ink-muted block mb-1.5">Color Tag</label>
+                    <div className="flex gap-2.5">
                       {colorsList.map((col) => (
                         <button
                           key={col}
                           type="button"
-                          className="w-8 h-8 rounded-full border-2 transition-all"
+                          className="w-8 h-8 rounded-full border-2 transition-all cursor-pointer"
                           style={{
                             backgroundColor: col,
-                            borderColor: color === col ? "#fff" : "transparent",
-                            boxShadow: color === col ? "0 0 0 2px " + col : "none"
+                            borderColor: color === col ? "var(--ink)" : "transparent"
                           }}
                           onClick={() => setColor(col)}
                         />
@@ -352,7 +455,7 @@ function HabitsPage() {
                   </div>
                   <button
                     type="submit"
-                    className="py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm cursor-pointer shadow transition-all"
+                    className="btn-primary w-full"
                   >
                     Update Habit
                   </button>
@@ -362,85 +465,121 @@ function HabitsPage() {
 
             {/* Habits Grid list */}
             {habits.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {habits.map((habit) => (
-                  <div
-                    key={habit._id}
-                    className="bg-white/70 dark:bg-slate-900/70 border border-slate-200/60 dark:border-slate-800/80 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
-                    style={{ borderTop: `4px solid ${habit.color}` }}
-                  >
-                    <div>
-                      {/* Top Header */}
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h3 className="text-base font-bold text-slate-900 dark:text-white leading-snug">{habit.title}</h3>
-                          {habit.description && (
-                            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{habit.description}</p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={() => openEditModal(habit)}
-                            className="p-1 text-slate-400 hover:text-blue-500 transition-colors rounded"
-                            title="Edit"
-                          >
-                            <MdModeEditOutline className="text-base" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteHabit(habit._id)}
-                            className="p-1 text-slate-400 hover:text-red-500 transition-colors rounded"
-                            title="Delete"
-                          >
-                            <MdDelete className="text-base" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Streak Status */}
-                      <div className="flex items-center gap-1.5 text-orange-500 font-extrabold text-sm mb-4">
-                        <MdLocalFireDepartment className="text-lg animate-pulse" />
-                        <span>{habit.streak} Day Streak</span>
-                      </div>
-                    </div>
-
-                    {/* Progress Checklist Grid (last 15 days) */}
-                    <div>
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Last 15 Days Progress</div>
-                      <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-15 gap-2">
-                        {lastDays.map((day) => {
-                          const isCompleted = habit.completedDates.includes(day.dateStr);
-                          return (
+              <div className="grid grid-cols-1 gap-6">
+                {habits.map((habit) => {
+                  const freq = habitFrequencies[habit._id] || { type: 'daily', weekdays: [], times: 3 };
+                  return (
+                    <div
+                      key={habit._id}
+                      className="paper-card p-5 border border-border flex flex-col md:flex-row justify-between gap-6"
+                      style={{ borderLeft: `4px solid ${habit.color}` }}
+                    >
+                      {/* Left: Info */}
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <h3 className="text-lg font-bold text-ink leading-snug">{habit.title}</h3>
+                            {habit.description && (
+                              <p className="text-xs text-ink-muted mt-0.5">{habit.description}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
                             <button
-                              key={day.dateStr}
-                              onClick={() => toggleDate(habit._id, day.dateStr)}
-                              className={`w-10 h-12 rounded-lg flex flex-col items-center justify-center border transition-all cursor-pointer select-none group relative ${
-                                isCompleted
-                                  ? "text-white border-transparent"
-                                  : "border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-                              }`}
-                              style={{
-                                backgroundColor: isCompleted ? habit.color : "transparent"
-                              }}
-                              title={day.dateStr}
+                              onClick={() => openEditModal(habit)}
+                              className="p-1 text-ink-muted hover:text-accent-rust transition-colors rounded hover:bg-bg cursor-pointer"
+                              title="Edit"
                             >
-                              <span className={`text-[8px] uppercase font-bold tracking-tight opacity-70 group-hover:opacity-100 ${isCompleted ? 'text-white/80' : 'text-slate-400'}`}>{day.dayName}</span>
-                              <span className="text-xs font-bold leading-none mt-0.5">{day.dayNum}</span>
+                              <LuPencil className="text-base" />
                             </button>
-                          );
-                        })}
+                            <button
+                              onClick={() => handleDeleteHabit(habit._id)}
+                              className="p-1 text-ink-muted hover:text-accent-red transition-colors rounded hover:bg-bg cursor-pointer"
+                              title="Delete"
+                            >
+                              <LuTrash2 className="text-base" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Streak & Frequency Badge */}
+                        <div className="flex items-center gap-3 text-xs mb-4 flex-wrap">
+                          <span className="flex items-center gap-1 text-accent-rust font-bold bg-accent-rust/10 px-2 py-0.5 rounded">
+                            <LuFlame className="text-sm animate-pulse" />
+                            {habit.streak} Day Streak
+                          </span>
+                          <span className="text-ink-muted font-mono bg-bg border border-border px-2 py-0.5 rounded capitalize">
+                            🔁 {freq.type === 'weekdays' ? `Weekdays (${freq.weekdays.join(', ')})` : (freq.type === 'weekly' ? `${freq.times}x/week` : 'Daily')}
+                          </span>
+                        </div>
+
+                        {/* Checklist last 15 days */}
+                        <div className="mt-4">
+                          <div className="text-[10px] font-mono font-bold text-ink-muted uppercase tracking-wider mb-2">Quick Log (Last 15 Days)</div>
+                          <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-thin">
+                            {lastDays.map((day) => {
+                              const isCompleted = habit.completedDates.includes(day.dateStr);
+                              return (
+                                <button
+                                  key={day.dateStr}
+                                  onClick={() => toggleDate(habit._id, day.dateStr)}
+                                  className={`min-w-[32px] h-10 rounded flex flex-col items-center justify-center border transition-all cursor-pointer select-none ${
+                                    isCompleted
+                                      ? "text-white border-transparent"
+                                      : "border-border text-ink-muted hover:bg-bg"
+                                  }`}
+                                  style={{
+                                    backgroundColor: isCompleted ? (habit.color || 'var(--accent-sage)') : "transparent"
+                                  }}
+                                  title={day.dateStr}
+                                >
+                                  <span className={`text-[7px] font-bold ${isCompleted ? 'text-white/80' : 'text-ink-muted'}`}>{day.dayName}</span>
+                                  <span className="text-[10px] font-bold leading-none mt-0.5">{day.dayNum}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
+
+                      {/* Right: GitHub style 90-Day Contribution Heatmap */}
+                      <div className="md:w-[280px] shrink-0 border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-5 flex flex-col justify-between">
+                        <span className="text-[10px] font-mono font-bold text-ink-muted uppercase tracking-widest block mb-2">90-Day Streak Heatmap</span>
+                        <div className="grid grid-cols-15 gap-1.5">
+                          {last90Days.map((day) => {
+                            const isCompleted = habit.completedDates.includes(day.dateStr);
+                            return (
+                              <div
+                                key={day.dateStr}
+                                className={`w-3.5 h-3.5 rounded-sm transition-all ${
+                                  isCompleted ? '' : 'bg-bg border border-border'
+                                }`}
+                                style={{
+                                  backgroundColor: isCompleted ? (habit.color || 'var(--accent-sage)') : undefined
+                                }}
+                                title={`${day.dateStr}: ${isCompleted ? 'Completed' : 'Not completed'}`}
+                              />
+                            );
+                          })}
+                        </div>
+                        <div className="flex justify-between items-center text-[9px] font-mono text-ink-muted mt-2">
+                          <span>90 days ago</span>
+                          <span>Today</span>
+                        </div>
+                      </div>
+
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
-              <div className="text-center py-20 text-slate-400 dark:text-slate-500 italic">
+              <div className="text-center py-20 text-ink-muted italic">
                 You haven't added any habits yet. Start tracking a new habit to build consistency!
               </div>
             )}
           </div>
         </main>
       </div>
+      <BottomBar />
     </div>
   );
 }

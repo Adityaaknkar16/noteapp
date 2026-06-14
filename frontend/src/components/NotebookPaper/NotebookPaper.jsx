@@ -1,4 +1,4 @@
-import React from "react";
+import { DetailedLeaf } from "../Doodles/Leaves";
 
 /**
  * NotebookPaper - A component that wraps an editor or notepad content with a
@@ -20,7 +20,7 @@ export default function NotebookPaper({
     "Playpen Sans": "font-['Playpen_Sans']",
     "Special Elite": "font-['Special_Elite']",
     "Architects Daughter": "font-['Architects_Daughter']",
-    "Great Vibes": "font-['Great_Vibes'] text-[1.5rem]",
+    "Great Vibes": "font-[ 'Great_Vibes'] text-[1.5rem]",
     "Sacramento": "font-['Sacramento'] text-[1.65rem]",
     "Rochester": "font-['Rochester'] text-[1.4rem]",
     "Reenie Beanie": "font-['Reenie_Beanie'] text-[1.65rem] font-medium",
@@ -96,9 +96,12 @@ export default function NotebookPaper({
 
       {/* ── Ruled Note Paper Surface ── */}
       <div
-        className={`w-full h-full min-h-[450px] pl-20 pr-8 pt-8 pb-8 transition-all duration-300 ${selectedFontClass}`}
+        className={`w-full h-full min-h-[450px] pl-20 pr-8 pt-8 pb-8 transition-all duration-300 relative ${selectedFontClass}`}
         style={paperStyle}
       >
+        <div className="absolute bottom-4 right-4 pointer-events-none select-none opacity-10">
+          <DetailedLeaf size="80px" color="var(--accent-sage)" />
+        </div>
         {children}
       </div>
     </div>

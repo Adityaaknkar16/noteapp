@@ -39,9 +39,17 @@ const diarySchema = new mongoose.Schema({
     default: "#1e293b",
   },
   stickers: {
-    type: [String],
-    default: [],
+     type: [String],
+     default: [],
   },
+
+  // Base64 photos array support
+  // NOTE: In production with many users, these should move to proper file storage (e.g. Cloudinary)
+  photos: {
+    type: [String],
+    default: []
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,
