@@ -1,11 +1,12 @@
 import { json } from "express";
 import Note from "../models/note.model.js";
+import User from "../models/user.model.js";
 import { errorHandler } from "../utilies/error.js"
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken"
 
 export const addNote = async (req, res, next) => {
-  const { title, content, tags } = req.body;
+  const { title, content, tags, color, paperType, fontFamily, penColor, stickers } = req.body;
   const { id } = req.user;
 
   if (!id) {
@@ -25,6 +26,11 @@ export const addNote = async (req, res, next) => {
       title,
       content,
       tags: tags || [],
+      color: color || "#ffffff",
+      paperType: paperType || "plain",
+      fontFamily: fontFamily || "Outfit",
+      penColor: penColor || "#1e293b",
+      stickers: stickers || [],
       userId: id,
     });
 
@@ -47,13 +53,16 @@ export const editNote = async (req, res, next) => {
       return next(errorHandler(404, "Note not found"));
     }
 
-    if (req.user.id !== note.userId) {
-      return next(errorHandler(401, "You can only update your note"));
+    const currentUser = await User.findById(req.user.id);
+    const userEmail = currentUser ? currentUser.email : "";
+
+    if (req.user.id !== note.userId && !note.collaborators.includes(userEmail)) {
+      return next(errorHandler(401, "You can only update notes you own or collaborate on"));
     }
 
-    const { title, content, tags, isPinned } = req.body;
+    const { title, content, tags, isPinned, color, isArchived, isTrashed, paperType, fontFamily, penColor, stickers } = req.body;
 
-    if (!title && !content && !tags && typeof isPinned === "undefined") {
+    if (!title && !content && !tags && typeof isPinned === "undefined" && typeof color === "undefined" && typeof isArchived === "undefined" && typeof isTrashed === "undefined" && !paperType && !fontFamily && !penColor && !stickers) {
       return next(errorHandler(404, "No changes provided"));
     }
 
@@ -62,6 +71,18 @@ export const editNote = async (req, res, next) => {
     if (content) note.content = content;
     if (tags) note.tags = tags;
     if (typeof isPinned !== "undefined") note.isPinned = isPinned;
+    if (typeof color !== "undefined") note.color = color;
+    if (typeof isArchived !== "undefined") note.isArchived = isArchived;
+    if (typeof isTrashed !== "undefined") note.isTrashed = isTrashed;
+    if (paperType) note.paperType = paperType;
+    if (fontFamily) note.fontFamily = fontFamily;
+    if (penColor) note.penColor = penColor;
+    if (stickers) note.stickers = stickers;
+
+    // Track editing user
+    if (currentUser) {
+      note.lastEditedBy = currentUser.username;
+    }
 
     await note.save();
 
@@ -77,20 +98,84 @@ export const editNote = async (req, res, next) => {
 
 
 export const getAllNotes = async (req, res, next) => {
-  const userId = req.user.id
+  const userId = req.user.id;
+  const { filter, tag } = req.query;
 
   try {
-    const notes = await Note.find({ userId: userId }).sort({ isPinned: -1 })
+    const currentUser = await User.findById(userId);
+    const userEmail = currentUser ? currentUser.email : "";
+
+    let conditions = [];
+    conditions.push({
+      $or: [
+        { userId: userId },
+        { collaborators: userEmail }
+      ]
+    });
+
+    if (filter === "archive") {
+      conditions.push({ isArchived: true, isTrashed: false });
+    } else if (filter === "trash") {
+      conditions.push({ isTrashed: true });
+    } else {
+      conditions.push({ isArchived: false, isTrashed: false });
+    }
+
+    if (tag) {
+      conditions.push({ tags: tag });
+    }
+
+    const notes = await Note.find({ $and: conditions }).sort({ isPinned: -1, createdAt: -1 });
 
     res.status(200).json({
       success: true,
-      message: "All notes retrived successfully",
+      message: "Notes retrieved successfully",
       notes,
-    })
+    });
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
+
+export const inviteCollaborator = async (req, res, next) => {
+  const { noteId } = req.params;
+  const { email } = req.body;
+
+  try {
+    const note = await Note.findById(noteId);
+    if (!note) {
+      return next(errorHandler(404, "Note not found"));
+    }
+
+    if (note.userId !== req.user.id) {
+      return next(errorHandler(403, "Only the owner can invite collaborators"));
+    }
+
+    if (!email) {
+      return next(errorHandler(400, "Email is required"));
+    }
+
+    const collaboratorUser = await User.findOne({ email });
+    if (!collaboratorUser) {
+      return next(errorHandler(404, "User with this email not found"));
+    }
+
+    if (note.collaborators.includes(email)) {
+      return next(errorHandler(400, "User is already a collaborator"));
+    }
+
+    note.collaborators.push(email);
+    await note.save();
+
+    res.status(200).json({
+      success: true,
+      message: `${email} successfully added as a collaborator`,
+      note
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 
 export const deleteNote = async (req, res, next) => {
@@ -103,17 +188,28 @@ export const deleteNote = async (req, res, next) => {
       return next(errorHandler(404, "Note not found"));
     }
 
-    await Note.deleteOne({ _id: noteId, userId: req.user.id });
-
-    res.status(200).json({
-      success: true,
-      message: "Note is deleted"
-    });
+    if (note.isTrashed) {
+      // Hard delete
+      await Note.deleteOne({ _id: noteId, userId: req.user.id });
+      res.status(200).json({
+        success: true,
+        message: "Note deleted permanently"
+      });
+    } else {
+      // Soft delete
+      note.isTrashed = true;
+      note.isPinned = false;
+      await note.save();
+      res.status(200).json({
+        success: true,
+        message: "Note moved to Trash"
+      });
+    }
 
   } catch (error) {
     next(error);
   }
-}
+};
 
 
 

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { MdOutlineDarkMode, MdOutlineLightMode, MdSettings } from 'react-icons/md';
 import SearchBar from './SearchBar/SearchBar';
 import ProfileInfo from './Cards/ProfileInfo';
 import { useNavigate, Link } from 'react-router-dom';
@@ -10,14 +11,26 @@ import {
 } from '../redux/userslice/userSlice';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { useSettings } from './Settings/SettingsProvider';
+import PersonalizationModal from './Settings/PersonalizationModal';
+import FlipClock from './FlipClock/FlipClock';
 
 function Navbar({ userInfo, handleClearSearch, onSearchNote }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const { token } = useSelector((state) => state.user);
   const authToken = token || localStorage.getItem('token');
+
+  const { theme, setTheme, playPageFlip } = useSettings();
+  const isDarkMode = theme === "dark" || theme === "midnight";
+
+  const toggleDarkMode = () => {
+    setTheme(isDarkMode ? "light" : "dark");
+    playPageFlip();
+  };
 
   const handleSearch = () => {
     if (!searchQuery) return;
@@ -129,11 +142,11 @@ function Navbar({ userInfo, handleClearSearch, onSearchNote }) {
   };
 
   return (
-    <div className="bg-white justify-between flex items-center px-6 py-2 drop-shadow">
+    <div className="bg-white/40 dark:bg-slate-900/30 border-b border-white/20 dark:border-slate-800/60 backdrop-blur-md justify-between flex items-center px-6 py-2 drop-shadow transition-colors duration-300">
       <Link to="/">
-        <h2 className="text-xl font-medium text-black py-2">
-          <span className="text-slate-500">Task</span>
-          <span className="text-slate-900">Note</span>
+        <h2 className="text-xl font-bold py-2 tracking-tight">
+          <span className="text-blue-500">Task</span>
+          <span className="text-slate-800 dark:text-slate-100">Note</span>
         </h2>
       </Link>
 
@@ -144,7 +157,32 @@ function Navbar({ userInfo, handleClearSearch, onSearchNote }) {
         onClearSearch={onClearSearch}
       />
 
-      <ProfileInfo userInfo={userInfo} onLogout={onLogout} />
+      <div className="flex items-center gap-4">
+        <FlipClock />
+
+        {/* Settings gear button */}
+        <button
+          onClick={() => {
+            setIsSettingsOpen(true);
+            playPageFlip();
+          }}
+          className="w-9 h-9 rounded-full flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors cursor-pointer text-slate-705 dark:text-slate-350"
+          title="Personalization & Themes Settings"
+        >
+          <MdSettings className="text-lg" />
+        </button>
+
+        <button
+          onClick={toggleDarkMode}
+          className="w-9 h-9 rounded-full flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors cursor-pointer text-slate-700 dark:text-slate-300"
+          title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        >
+          {isDarkMode ? <MdOutlineLightMode className="text-lg" /> : <MdOutlineDarkMode className="text-lg" />}
+        </button>
+        <ProfileInfo userInfo={userInfo} onLogout={onLogout} />
+      </div>
+
+      <PersonalizationModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </div>
   );
 }

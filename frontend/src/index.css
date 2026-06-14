@@ -1,31 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Kalam:wght@300;400;700&family=Patrick+Hand&family=Playpen+Sans:wght@300;400;600&family=Special+Elite&family=Architects+Daughter&family=Great+Vibes&family=Sacramento&family=Rochester&family=Reenie+Beanie&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --flower-opacity: 0.15;
+  --glass-blur: 16px;
+}
+
+/* Cream Theme */
+.theme-cream {
+  color: #4b3621 !important;
+}
+.theme-cream body {
+  background-color: #fdfaf2 !important;
+}
+.theme-cream .glass-card,
+.theme-cream aside,
+.theme-cream nav {
+  background-color: rgba(253, 250, 242, 0.45) !important;
+  border-color: rgba(75, 54, 33, 0.08) !important;
+}
+
+/* Lavender Theme */
+.theme-lavender {
+  color: #2e1065 !important;
+}
+.theme-lavender body {
+  background-color: #f9f5ff !important;
+}
+.theme-lavender .glass-card,
+.theme-lavender aside,
+.theme-lavender nav {
+  background-color: rgba(249, 245, 255, 0.45) !important;
+  border-color: rgba(46, 16, 101, 0.08) !important;
+}
+
+/* Midnight Theme */
+.theme-midnight {
+  color: #f3f4f6 !important;
+}
+.theme-midnight body {
+  background-color: #030712 !important;
+}
+.theme-midnight .glass-card,
+.theme-midnight aside,
+.theme-midnight nav {
+  background-color: rgba(3, 7, 18, 0.3) !important;
+  border-color: rgba(99, 102, 241, 0.15) !important;
+  box-shadow: 0 0 25px rgba(99, 102, 241, 0.05);
+}
+
 @layer base {
   html {
-    font-family: sans-serif;
+    font-family: 'Outfit', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   body {
-    background-color: rgb(241, 245, 241);
+    @apply bg-slate-50 dark:bg-[#07090e] text-slate-900 dark:text-slate-100 transition-colors duration-300;
     overflow: hidden;
   }
 }
 
 @layer components {
   .input-box {
-    @apply w-full text-sm bg-transparent border-[1.5px] px-5 py-3 rounded mb-4;
+    @apply w-full text-sm bg-white/40 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 px-5 py-3 rounded-2xl outline-none focus:ring-4 focus:ring-blue-500/20 dark:focus:ring-blue-500/10 transition-all font-medium;
   }
 
   .btn-primary {
-    @apply w-full text-sm bg-primary text-white p-2 rounded my-1 hover:bg-blue-700;
+    @apply w-full text-sm bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold p-3 rounded-2xl shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-200 cursor-pointer;
   }
 
   .icon-btn {
-    @apply text-xl text-slate-300 cursor-pointer hover:text-primary;
+    @apply text-xl text-slate-400 cursor-pointer hover:text-blue-500 hover:scale-110 transition-all;
   }
 
   .input-label {
-    @apply text-xs text-slate-400;
+    @apply text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1.5;
   }
+
+  /* Glassmorphic card design system */
+  .glass-card {
+    @apply bg-white/60 dark:bg-slate-900/40 border border-white/40 dark:border-slate-800/60 rounded-[24px] shadow-xl shadow-slate-100/40 dark:shadow-none;
+    backdrop-filter: blur(var(--glass-blur));
+  }
+
+  /* Glow effects */
+  .glow-blue {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
+  }
+  .glow-purple {
+    box-shadow: 0 0 30px rgba(168, 85, 247, 0.15);
+  }
+  .glow-emerald {
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.15);
+  }
+
+  /* Gradient text */
+  .gradient-text-blue {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-500 to-teal-500 dark:from-blue-400 dark:via-indigo-300 dark:to-teal-400;
+  }
+  .gradient-text-pink {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 dark:from-pink-400 dark:via-purple-300 dark:to-indigo-400;
+  }
+}
+
+/* 3D Calming Mesh Background elements */
+.mesh-glow-1 {
+  background: radial-gradient(circle, rgba(20,184,166,0.15) 0%, rgba(99,102,241,0.05) 50%, transparent 100%);
+  animation: floatMesh1 25s ease-in-out infinite alternate;
+}
+
+.mesh-glow-2 {
+  background: radial-gradient(circle, rgba(99,102,241,0.18) 0%, rgba(168,85,247,0.05) 60%, transparent 100%);
+  animation: floatMesh2 30s ease-in-out infinite alternate;
+}
+
+.mesh-glow-3 {
+  background: radial-gradient(circle, rgba(168,85,247,0.12) 0%, rgba(20,184,166,0.03) 50%, transparent 100%);
+  animation: floatMesh3 20s ease-in-out infinite alternate;
+}
+
+@keyframes floatMesh1 {
+  0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  50% { transform: translate(10%, 15%) scale(1.2) rotate(90deg); }
+  100% { transform: translate(-5%, 25%) scale(0.9) rotate(180deg); }
+}
+
+@keyframes floatMesh2 {
+  0% { transform: translate(0, 0) scale(1.1) rotate(0deg); }
+  50% { transform: translate(-15%, -10%) scale(0.8) rotate(-120deg); }
+  100% { transform: translate(10%, -5%) scale(1.2) rotate(-240deg); }
+}
+
+@keyframes floatMesh3 {
+  0% { transform: translate(0, 0) scale(0.9) rotate(0deg); }
+  50% { transform: translate(-8%, 20%) scale(1.1) rotate(140deg); }
+  100% { transform: translate(12%, -15%) scale(1) rotate(280deg); }
+}
+
+@keyframes pulseSlow {
+  0%, 100% {
+    transform: scale(1) translate(0, 0);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.15) translate(4%, 4%);
+    opacity: 0.95;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 8s ease-in-out infinite;
 }

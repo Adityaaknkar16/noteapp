@@ -19,12 +19,47 @@ const noteSchema = new mongoose.Schema({
 
    isPinned:{
     type: Boolean,
-    default: "false"
+    default: false
+   },
+   color:{
+    type: String,
+    default: "#ffffff"
+   },
+   paperType: {
+     type: String,
+     default: "plain"
+   },
+   fontFamily: {
+     type: String,
+     default: "Outfit"
+   },
+   penColor: {
+     type: String,
+     default: "#1e293b"
+   },
+   stickers: {
+     type: [String],
+     default: []
+   },
+   isArchived:{
+    type: Boolean,
+    default: false
+   },
+   isTrashed:{
+    type: Boolean,
+    default: false
    },
    userId :{
     type:String,
     requried:true
 
+   },
+   collaborators: {
+    type: [String],
+    default: []
+   },
+   lastEditedBy: {
+    type: String
    },
 
    createdAt:{

@@ -3,7 +3,7 @@ import pkg from "jsonwebtoken";
 const { verify } = pkg;
 
 import { verifyToken } from "../utilies/verifyUser.js";
-import { addNote, deleteNote, editNote, getAllNotes, updatenotepinned, searchNotes } from "../controller/note.controller.js";
+import { addNote, deleteNote, editNote, getAllNotes, updatenotepinned, searchNotes, inviteCollaborator } from "../controller/note.controller.js";
 
 const router = express.Router();
 
@@ -15,6 +15,7 @@ router.delete("/delete/:noteId", verifyToken,deleteNote)
 
 router.put("/update-note-pinned/:noteId", verifyToken, updatenotepinned)
 router.get("/search", verifyToken, searchNotes)
+router.post("/invite/:noteId", verifyToken, inviteCollaborator)
 
 export default router;
 

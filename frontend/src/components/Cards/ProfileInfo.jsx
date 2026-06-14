@@ -6,11 +6,11 @@ function ProfileInfo({ onLogout, userInfo }) {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="w-12 h-12 flex items-center justify-center bg-slate-100 rounded-full font-semibold text-slate-700">
+      <div className="w-12 h-12 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-full font-semibold text-slate-700 dark:text-slate-300">
         {getInitials(username)}
       </div>
       <div>
-        <p className="text-sm font-medium text-slate-800">{username}</p>
+        <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{username}</p>
       </div>
       <button
         className="text-sm bg-red-500 px-3 py-1 rounded-md text-white hover:opacity-80 transition"
