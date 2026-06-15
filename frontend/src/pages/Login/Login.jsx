@@ -34,7 +34,7 @@ const Login = () => {
     setError(""); setIsLoading(true)
     try {
       dispatch(signInStart())
-      const res = await axios.post("http://localhost:3000/api/auth/signin", { email, password }, { withCredentials: true })
+      const res = await axios.post("/api/auth/signin", { email, password }, { withCredentials: true })
       setIsLoading(false)
       if (res.data.success === false) { alert.error(res.data.message); dispatch(signInFailure(res.data.message)); return }
       alert.success(res.data.message || "Logged in successfully!")
@@ -52,7 +52,7 @@ const Login = () => {
     if (!validateEmail(email)) { setError("Please enter a valid email address"); return }
     setError(""); setIsLoading(true)
     try {
-      const res = await axios.post("http://localhost:3000/api/auth/forgot-password", { email })
+      const res = await axios.post("/api/auth/forgot-password", { email })
       setIsLoading(false)
       if (res.data.success) { alert.success("Account found! Set your new password."); setResetUserId(res.data.resetToken); setView("reset") }
       else { alert.error(res.data.message || "Failed") }
@@ -69,7 +69,7 @@ const Login = () => {
     if (password !== confirmPassword) { setError("Passwords do not match"); return }
     setError(""); setIsLoading(true)
     try {
-      const res = await axios.post("http://localhost:3000/api/auth/reset-password", { userId: resetUserId, password })
+      const res = await axios.post("/api/auth/reset-password", { userId: resetUserId, password })
       setIsLoading(false)
       if (res.data.success) { alert.success("Password updated! Please log in."); setView("login"); setPassword(""); setConfirmPassword("") }
       else { alert.error(res.data.message || "Reset failed") }
@@ -86,7 +86,7 @@ const Login = () => {
     setShowSocialModal(false); setIsLoading(true)
     try {
       dispatch(signInStart())
-      const res = await axios.post("http://localhost:3000/api/auth/google", { email: mockEmail, username })
+      const res = await axios.post("/api/auth/google", { email: mockEmail, username })
       setIsLoading(false)
       if (res.data.success) { alert.success(`Logged in via ${socialProvider}!`); dispatch(signInSuccess(res.data)); navigate("/") }
       else { alert.error(res.data.message || "Social login failed") }

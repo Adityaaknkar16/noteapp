@@ -71,7 +71,7 @@ function Dashboard() {
     setRecapLoading(true);
     setRecapType("monthly");
     try {
-      const res = await axios.get(`http://localhost:3000/api/diary/recap?month=${targetMonth}`, { withCredentials: true });
+      const res = await axios.get(`/api/diary/recap?month=${targetMonth}`, { withCredentials: true });
       if (res.data.success) {
         setRecapData(res.data.recap);
         setRecapModalOpen(true);
@@ -89,7 +89,7 @@ function Dashboard() {
     try {
       const year = moment().format("YYYY");
       const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
-      const promises = months.map(m => axios.get(`http://localhost:3000/api/diary/recap?month=${m}`, { withCredentials: true }));
+      const promises = months.map(m => axios.get(`/api/diary/recap?month=${m}`, { withCredentials: true }));
       const results = await Promise.all(promises);
 
       let totalDiaryCount = 0;
@@ -148,25 +148,25 @@ function Dashboard() {
     setLoading(true);
     try {
       // Fetch stats
-      const statsRes = await axios.get("http://localhost:3000/api/diary/stats", { withCredentials: true });
+      const statsRes = await axios.get("/api/diary/stats", { withCredentials: true });
       if (statsRes.data.success) {
         setStats(statsRes.data.stats);
       }
 
       // Fetch recent notes
-      const notesRes = await axios.get("http://localhost:3000/api/note/all", { withCredentials: true });
+      const notesRes = await axios.get("/api/note/all", { withCredentials: true });
       if (notesRes.data.success) {
         setRecentNotes(notesRes.data.notes.slice(0, 3));
       }
 
       // Fetch subjects
-      const subRes = await axios.get("http://localhost:3000/api/academic/subjects/all", { withCredentials: true });
+      const subRes = await axios.get("/api/academic/subjects/all", { withCredentials: true });
       if (subRes.data.success) {
         setSubjects(subRes.data.subjects || []);
       }
 
       // Fetch scheduled events for TODAY
-      const evRes = await axios.get("http://localhost:3000/api/academic/events/all", { withCredentials: true });
+      const evRes = await axios.get("/api/academic/events/all", { withCredentials: true });
       if (evRes.data.success) {
         const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
         const todayName = daysOfWeek[new Date().getDay()];
@@ -180,19 +180,19 @@ function Dashboard() {
       }
 
       // Fetch all tasks
-      const tasksRes = await axios.get("http://localhost:3000/api/task/all", { withCredentials: true });
+      const tasksRes = await axios.get("/api/task/all", { withCredentials: true });
       if (tasksRes.data.success) {
         setTasks(tasksRes.data.tasks || []);
       }
 
       // Fetch all habits
-      const habitsRes = await axios.get("http://localhost:3000/api/habit/all", { withCredentials: true });
+      const habitsRes = await axios.get("/api/habit/all", { withCredentials: true });
       if (habitsRes.data.success) {
         setHabits(habitsRes.data.habits || []);
       }
 
       // Fetch all diary entries for the trend chart
-      const diaryRes = await axios.get("http://localhost:3000/api/diary/all", { withCredentials: true });
+      const diaryRes = await axios.get("/api/diary/all", { withCredentials: true });
       if (diaryRes.data.success) {
         setDiaryEntries(diaryRes.data.entries || []);
       }
@@ -245,7 +245,7 @@ function Dashboard() {
 
     try {
       if (type === "task") {
-        const res = await axios.post("http://localhost:3000/api/task/add", {
+        const res = await axios.post("/api/task/add", {
           title: content,
           priority: "medium",
           dueDate: moment().format("YYYY-MM-DD")
@@ -256,7 +256,7 @@ function Dashboard() {
           fetchDashboardData();
         }
       } else if (type === "note") {
-        const res = await axios.post("http://localhost:3000/api/note/add", {
+        const res = await axios.post("/api/note/add", {
           title: "Quick Note",
           content: content,
           tags: ["quick-add"]
@@ -267,7 +267,7 @@ function Dashboard() {
           fetchDashboardData();
         }
       } else if (type === "diary") {
-        const res = await axios.post("http://localhost:3000/api/diary/add", {
+        const res = await axios.post("/api/diary/add", {
           title: "Quick Log",
           content: content,
           mood: "neutral",

@@ -75,33 +75,33 @@ function CalendarPage() {
 
   const fetchCalendarData = async () => {
     try {
-      const subRes = await axios.get("http://localhost:3000/api/academic/subjects/all", { withCredentials: true });
+      const subRes = await axios.get("/api/academic/subjects/all", { withCredentials: true });
       if (subRes.data.success) {
         setSubjects(subRes.data.subjects || []);
       }
       
-      const evRes = await axios.get("http://localhost:3000/api/academic/events/all", { withCredentials: true });
+      const evRes = await axios.get("/api/academic/events/all", { withCredentials: true });
       if (evRes.data.success) {
         setEvents(evRes.data.events || []);
       }
 
-      const tasksRes = await axios.get("http://localhost:3000/api/task/all", { withCredentials: true });
+      const tasksRes = await axios.get("/api/task/all", { withCredentials: true });
       if (tasksRes.data.success) {
         setTasks(tasksRes.data.tasks || []);
       }
 
-      const habitsRes = await axios.get("http://localhost:3000/api/habit/all", { withCredentials: true });
+      const habitsRes = await axios.get("/api/habit/all", { withCredentials: true });
       if (habitsRes.data.success) {
         setHabits(habitsRes.data.habits || []);
       }
 
       // Fetch Important Dates
-      const datesRes = await axios.get("http://localhost:3000/api/important-date/all", { withCredentials: true });
+      const datesRes = await axios.get("/api/important-date/all", { withCredentials: true });
       if (datesRes.data.success) {
         setImportantDates(datesRes.data.importantDates || []);
       }
 
-      const upcomingRes = await axios.get("http://localhost:3000/api/important-date/upcoming", { withCredentials: true });
+      const upcomingRes = await axios.get("/api/important-date/upcoming", { withCredentials: true });
       if (upcomingRes.data.success) {
         setUpcomingDates(upcomingRes.data.importantDates || []);
       }
@@ -117,7 +117,7 @@ function CalendarPage() {
     if (startTime >= endTime) { alert.show("End time must be after start time", "error"); return; }
 
     try {
-      const res = await axios.post("http://localhost:3000/api/academic/events/add", {
+      const res = await axios.post("/api/academic/events/add", {
         title,
         subjectId: subjectId || null,
         dayOfWeek,
@@ -142,7 +142,7 @@ function CalendarPage() {
     if (!window.confirm("Delete this scheduled class?")) return;
 
     try {
-      const res = await axios.delete(`http://localhost:3000/api/academic/events/delete/${eventId}`, { withCredentials: true });
+      const res = await axios.delete(`/api/academic/events/delete/${eventId}`, { withCredentials: true });
       if (res.data.success) { alert.show("Event deleted", "success"); fetchCalendarData(); }
     } catch (error) {
       alert.show("Failed to delete event", "error");
@@ -157,7 +157,7 @@ function CalendarPage() {
     }
 
     try {
-      const res = await axios.post("http://localhost:3000/api/important-date/add", {
+      const res = await axios.post("/api/important-date/add", {
         title: newDateTitle,
         date: newDateValue,
         type: newDateType,
@@ -182,7 +182,7 @@ function CalendarPage() {
     if (!window.confirm("Delete this important date?")) return;
 
     try {
-      const res = await axios.delete(`http://localhost:3000/api/important-date/delete/${dateId}`, { withCredentials: true });
+      const res = await axios.delete(`/api/important-date/delete/${dateId}`, { withCredentials: true });
       if (res.data.success) {
         alert.show("Important date deleted", "success");
         fetchCalendarData();

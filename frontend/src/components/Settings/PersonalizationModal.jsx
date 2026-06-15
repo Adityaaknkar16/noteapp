@@ -72,12 +72,12 @@ export default function PersonalizationModal({ isOpen, onClose }) {
     setExporting(true);
     try {
       const [notesRes, tasksRes, diaryRes, habitsRes, subjectsRes, eventsRes] = await Promise.all([
-        axios.get("http://localhost:3000/api/note/all", { withCredentials: true }),
-        axios.get("http://localhost:3000/api/task/all", { withCredentials: true }),
-        axios.get("http://localhost:3000/api/diary/all", { withCredentials: true }),
-        axios.get("http://localhost:3000/api/habit/all", { withCredentials: true }),
-        axios.get("http://localhost:3000/api/academic/subjects/all", { withCredentials: true }),
-        axios.get("http://localhost:3000/api/academic/events/all", { withCredentials: true })
+        axios.get("/api/note/all", { withCredentials: true }),
+        axios.get("/api/task/all", { withCredentials: true }),
+        axios.get("/api/diary/all", { withCredentials: true }),
+        axios.get("/api/habit/all", { withCredentials: true }),
+        axios.get("/api/academic/subjects/all", { withCredentials: true }),
+        axios.get("/api/academic/events/all", { withCredentials: true })
       ]);
 
       const backupData = {
@@ -118,7 +118,7 @@ export default function PersonalizationModal({ isOpen, onClose }) {
         // Loop and import each item sequentially
         if (data.notes) {
           for (const note of data.notes) {
-            await axios.post("http://localhost:3000/api/note/add", {
+            await axios.post("/api/note/add", {
               title: note.title,
               content: note.content,
               tags: note.tags,
@@ -133,7 +133,7 @@ export default function PersonalizationModal({ isOpen, onClose }) {
 
         if (data.tasks) {
           for (const task of data.tasks) {
-            await axios.post("http://localhost:3000/api/task/add", {
+            await axios.post("/api/task/add", {
               title: task.title,
               priority: task.priority,
               dueDate: task.dueDate
@@ -143,7 +143,7 @@ export default function PersonalizationModal({ isOpen, onClose }) {
 
         if (data.diary) {
           for (const entry of data.diary) {
-            await axios.post("http://localhost:3000/api/diary/add", {
+            await axios.post("/api/diary/add", {
               title: entry.title,
               content: entry.content,
               mood: entry.mood,
@@ -159,7 +159,7 @@ export default function PersonalizationModal({ isOpen, onClose }) {
 
         if (data.habits) {
           for (const habit of data.habits) {
-            await axios.post("http://localhost:3000/api/habit/add", {
+            await axios.post("/api/habit/add", {
               title: habit.title,
               description: habit.description,
               color: habit.color
@@ -169,7 +169,7 @@ export default function PersonalizationModal({ isOpen, onClose }) {
 
         if (data.subjects) {
           for (const sub of data.subjects) {
-            await axios.post("http://localhost:3000/api/academic/subjects/add", {
+            await axios.post("/api/academic/subjects/add", {
               name: sub.name,
               color: sub.color,
               performance: sub.performance,

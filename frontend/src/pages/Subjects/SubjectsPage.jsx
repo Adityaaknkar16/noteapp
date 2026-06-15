@@ -126,7 +126,7 @@ function SubjectsPage() {
 
   const fetchSubjects = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/academic/subjects/all", { withCredentials: true });
+      const res = await axios.get("/api/academic/subjects/all", { withCredentials: true });
       if (res.data.success) {
         setSubjects(res.data.subjects || []);
         // Set default Pomodoro subject if empty
@@ -144,7 +144,7 @@ function SubjectsPage() {
     if (!name) { alert.error("Subject name is required"); return; }
 
     try {
-      const res = await axios.post("http://localhost:3000/api/academic/subjects/add", {
+      const res = await axios.post("/api/academic/subjects/add", {
         name,
         color,
         performance,
@@ -164,7 +164,7 @@ function SubjectsPage() {
     if (!newGrade || isNaN(newGrade)) { alert.error("Please enter a valid number"); return; }
 
     try {
-      const res = await axios.post(`http://localhost:3000/api/academic/subjects/${subjectId}/add-grade`, {
+      const res = await axios.post(`/api/academic/subjects/${subjectId}/add-grade`, {
         grade: Number(newGrade)
       }, { withCredentials: true });
 
@@ -181,7 +181,7 @@ function SubjectsPage() {
     if (!window.confirm("Are you sure you want to delete this subject? This will delete all calendar events connected to it.")) return;
 
     try {
-      const res = await axios.delete(`http://localhost:3000/api/academic/subjects/delete/${subjectId}`, { withCredentials: true });
+      const res = await axios.delete(`/api/academic/subjects/delete/${subjectId}`, { withCredentials: true });
       if (res.data.success) { alert.success("Subject deleted"); fetchSubjects(); }
     } catch (error) {
       alert.error("Failed to delete subject");

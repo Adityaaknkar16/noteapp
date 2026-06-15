@@ -52,11 +52,11 @@ function Navbar({ userInfo, handleClearSearch, onSearchNote }) {
 
   useEffect(() => {
     if (isCommandPaletteOpen) {
-      axios.get("http://localhost:3000/api/note/all", { withCredentials: true })
+      axios.get("/api/note/all", { withCredentials: true })
         .then(res => { if (res.data.success) setPaletteNotes(res.data.notes || []); })
         .catch(err => console.error(err));
       
-      axios.get("http://localhost:3000/api/task/all", { withCredentials: true })
+      axios.get("/api/task/all", { withCredentials: true })
         .then(res => { if (res.data.success) setPaletteTasks(res.data.tasks || []); })
         .catch(err => console.error(err));
     }
@@ -94,7 +94,7 @@ function Navbar({ userInfo, handleClearSearch, onSearchNote }) {
       const logoutAttempts = [
         {
           method: 'get',
-          url: 'http://localhost:3000/api/auth/signOut',
+          url: '/api/auth/signOut',
           config: {
             headers: { Authorization: `Bearer ${authToken}` },
             withCredentials: true,
@@ -103,7 +103,7 @@ function Navbar({ userInfo, handleClearSearch, onSearchNote }) {
         },
         {
           method: 'post',
-          url: 'http://localhost:3000/api/auth/signOut',
+          url: '/api/auth/signOut',
           config: {
             withCredentials: true,
             timeout: 10000,
@@ -111,7 +111,7 @@ function Navbar({ userInfo, handleClearSearch, onSearchNote }) {
         },
         {
           method: 'delete',
-          url: 'http://localhost:3000/api/auth/signOut',
+          url: '/api/auth/signOut',
           config: {
             headers: { Authorization: `Bearer ${authToken}` },
             withCredentials: true,
@@ -120,7 +120,7 @@ function Navbar({ userInfo, handleClearSearch, onSearchNote }) {
         },
         {
           method: 'post',
-          url: 'http://localhost:3000/api/auth/signOut',
+          url: '/api/auth/signOut',
           config: {
             headers: {
               'x-auth-token': authToken,

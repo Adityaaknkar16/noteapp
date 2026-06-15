@@ -133,7 +133,7 @@ function TasksPage() {
 
   const fetchTasks = async (filter = taskFilter) => {
     try {
-      const res = await axios.get("http://localhost:3000/api/task/all", {
+      const res = await axios.get("/api/task/all", {
         params: { filter },
         withCredentials: true,
       });
@@ -153,7 +153,7 @@ function TasksPage() {
     }
 
     try {
-      const res = await axios.post("http://localhost:3000/api/task/add", {
+      const res = await axios.post("/api/task/add", {
         title,
         priority,
         dueDate: dueDate || null
@@ -170,7 +170,7 @@ function TasksPage() {
 
   const toggleTaskCompletion = async (task) => {
     try {
-      const res = await axios.post(`http://localhost:3000/api/task/edit/${task._id}`, {
+      const res = await axios.post(`/api/task/edit/${task._id}`, {
         completed: !task.completed
       }, { withCredentials: true });
 
@@ -189,7 +189,7 @@ function TasksPage() {
 
   const handleDeleteTask = async (taskId) => {
     try {
-      const res = await axios.delete(`http://localhost:3000/api/task/delete/${taskId}`, { withCredentials: true });
+      const res = await axios.delete(`/api/task/delete/${taskId}`, { withCredentials: true });
       if (res.data.success) {
         alert.success("Task deleted");
         setInProgressTaskIds(prev => prev.filter(id => id !== taskId));
@@ -212,18 +212,18 @@ function TasksPage() {
     try {
       if (targetColumn === 'done') {
         // Mark as completed
-        await axios.post(`http://localhost:3000/api/task/edit/${taskId}`, { completed: true }, { withCredentials: true });
+        await axios.post(`/api/task/edit/${taskId}`, { completed: true }, { withCredentials: true });
         setInProgressTaskIds(prev => prev.filter(id => id !== taskId));
         alert.success("Task completed! ✓");
       } else if (targetColumn === 'inprogress') {
         // Mark as pending & in progress
-        await axios.post(`http://localhost:3000/api/task/edit/${taskId}`, { completed: false }, { withCredentials: true });
+        await axios.post(`/api/task/edit/${taskId}`, { completed: false }, { withCredentials: true });
         if (!inProgressTaskIds.includes(taskId)) {
           setInProgressTaskIds(prev => [...prev, taskId]);
         }
       } else {
         // To Do: Mark as pending & NOT in progress
-        await axios.post(`http://localhost:3000/api/task/edit/${taskId}`, { completed: false }, { withCredentials: true });
+        await axios.post(`/api/task/edit/${taskId}`, { completed: false }, { withCredentials: true });
         setInProgressTaskIds(prev => prev.filter(id => id !== taskId));
       }
       fetchTasks();

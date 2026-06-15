@@ -32,7 +32,7 @@ function Signup() {
     if (!password) { setError("Please enter the password"); return; }
     setError(""); setIsLoading(true);
     try {
-      const res = await axios.post("http://localhost:3000/api/auth/signup", { username: name, email, password }, { withCredentials: true });
+      const res = await axios.post("/api/auth/signup", { username: name, email, password }, { withCredentials: true });
       setIsLoading(false);
       if (res.data.success === false) { setError(res.data.message); alert.error(res.data.message || "Sign up failed"); return; }
       alert.success(res.data.message || "Account created successfully!");
@@ -50,7 +50,7 @@ function Signup() {
     setShowSocialModal(false); setIsLoading(true);
     try {
       dispatch(signInStart());
-      const res = await axios.post("http://localhost:3000/api/auth/google", { email: mockEmail, username });
+      const res = await axios.post("/api/auth/google", { email: mockEmail, username });
       setIsLoading(false);
       if (res.data.success) { alert.success(`Registered via ${socialProvider}!`); dispatch(signInSuccess(res.data)); navigate("/"); }
       else { alert.error(res.data.message || "Social login failed"); }

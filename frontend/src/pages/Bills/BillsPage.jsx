@@ -31,7 +31,7 @@ export default function BillsPage() {
 
   const fetchBills = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/bill/all", { withCredentials: true });
+      const res = await axios.get("/api/bill/all", { withCredentials: true });
       if (res.data.success) {
         setBills(res.data.bills || []);
       }
@@ -51,7 +51,7 @@ export default function BillsPage() {
     setLoading(true);
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/bill/add",
+        "/api/bill/add",
         {
           title,
           amount: Number(amount),
@@ -79,7 +79,7 @@ export default function BillsPage() {
 
   const handleMarkAsPaid = async (id) => {
     try {
-      const res = await axios.post(`http://localhost:3000/api/bill/pay/${id}`, {}, { withCredentials: true });
+      const res = await axios.post(`/api/bill/pay/${id}`, {}, { withCredentials: true });
       if (res.data.success) {
         alert.show("Bill marked as paid! Expense logged in Budget module.", "success");
         fetchBills();
@@ -91,7 +91,7 @@ export default function BillsPage() {
 
   const handleDeleteBill = async (id) => {
     try {
-      const res = await axios.delete(`http://localhost:3000/api/bill/delete/${id}`, { withCredentials: true });
+      const res = await axios.delete(`/api/bill/delete/${id}`, { withCredentials: true });
       if (res.data.success) {
         alert.show("Bill reminder removed", "success");
         fetchBills();

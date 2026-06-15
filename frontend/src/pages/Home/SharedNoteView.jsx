@@ -13,7 +13,7 @@ export default function SharedNoteView() {
   useEffect(() => {
     const fetchSharedNote = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/api/note/shared/${token}`);
+        const res = await axios.get(`/api/note/shared/${token}`);
         if (res.data.success) {
           setNote(res.data.note);
         }

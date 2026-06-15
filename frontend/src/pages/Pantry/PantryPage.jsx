@@ -29,7 +29,7 @@ export default function PantryPage() {
 
   const fetchItems = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/pantry/all", { withCredentials: true });
+      const res = await axios.get("/api/pantry/all", { withCredentials: true });
       if (res.data.success) {
         setItems(res.data.items || []);
       }
@@ -49,7 +49,7 @@ export default function PantryPage() {
     setLoading(true);
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/pantry/add",
+        "/api/pantry/add",
         {
           name,
           category,
@@ -77,7 +77,7 @@ export default function PantryPage() {
     const newQuantity = Math.max(0, item.quantity + change);
     try {
       const res = await axios.post(
-        `http://localhost:3000/api/pantry/edit/${item._id}`,
+        `/api/pantry/edit/${item._id}`,
         { quantity: newQuantity },
         { withCredentials: true }
       );
@@ -91,7 +91,7 @@ export default function PantryPage() {
 
   const handleDeleteItem = async (id) => {
     try {
-      const res = await axios.delete(`http://localhost:3000/api/pantry/delete/${id}`, { withCredentials: true });
+      const res = await axios.delete(`/api/pantry/delete/${id}`, { withCredentials: true });
       if (res.data.success) {
         alert.show("Item removed from pantry", "success");
         fetchItems();
@@ -104,7 +104,7 @@ export default function PantryPage() {
   const handleAddToShoppingList = async (item) => {
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/shopping/add",
+        "/api/shopping/add",
         {
           name: item.name,
           quantity: `Needs refill`,

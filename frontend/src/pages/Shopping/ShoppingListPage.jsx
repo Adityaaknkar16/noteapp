@@ -26,7 +26,7 @@ export default function ShoppingListPage() {
 
   const fetchItems = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/shopping/all", { withCredentials: true });
+      const res = await axios.get("/api/shopping/all", { withCredentials: true });
       if (res.data.success) {
         setItemsGrouped(res.data.items || {});
       }
@@ -46,7 +46,7 @@ export default function ShoppingListPage() {
     setLoading(true);
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/shopping/add",
+        "/api/shopping/add",
         {
           name: itemName,
           quantity: itemQuantity,
@@ -68,7 +68,7 @@ export default function ShoppingListPage() {
 
   const handleToggleChecked = async (id) => {
     try {
-      const res = await axios.post(`http://localhost:3000/api/shopping/toggle/${id}`, {}, { withCredentials: true });
+      const res = await axios.post(`/api/shopping/toggle/${id}`, {}, { withCredentials: true });
       if (res.data.success) {
         fetchItems();
       }
@@ -79,7 +79,7 @@ export default function ShoppingListPage() {
 
   const handleDeleteItem = async (id) => {
     try {
-      const res = await axios.delete(`http://localhost:3000/api/shopping/delete/${id}`, { withCredentials: true });
+      const res = await axios.delete(`/api/shopping/delete/${id}`, { withCredentials: true });
       if (res.data.success) {
         fetchItems();
       }
@@ -90,7 +90,7 @@ export default function ShoppingListPage() {
 
   const handleClearChecked = async () => {
     try {
-      const res = await axios.delete("http://localhost:3000/api/shopping/clear-checked", { withCredentials: true });
+      const res = await axios.delete("/api/shopping/clear-checked", { withCredentials: true });
       if (res.data.success) {
         alert.show("Cleared all checked items", "success");
         fetchItems();

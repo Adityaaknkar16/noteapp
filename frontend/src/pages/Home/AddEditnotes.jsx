@@ -211,7 +211,7 @@ function AddEditnotes({ type, noteData, onClose, getAllNotes, onUpdateTab }) {
         }
 
         try {
-            const res = await axios.post(`http://localhost:3000/api/note/lock/${noteData._id}`, { pin }, { withCredentials: true });
+            const res = await axios.post(`/api/note/lock/${noteData._id}`, { pin }, { withCredentials: true });
             if (res.data.success) {
                 alert.show("Note PIN lock activated!", "success");
                 setIsLocked(true);
@@ -227,7 +227,7 @@ function AddEditnotes({ type, noteData, onClose, getAllNotes, onUpdateTab }) {
         if (!pin) return;
 
         try {
-            const res = await axios.post(`http://localhost:3000/api/note/unlock/${noteData._id}`, { pin }, { withCredentials: true });
+            const res = await axios.post(`/api/note/unlock/${noteData._id}`, { pin }, { withCredentials: true });
             if (res.data.success) {
                 alert.show("PIN passcode removed successfully", "success");
                 setIsLocked(false);
@@ -241,7 +241,7 @@ function AddEditnotes({ type, noteData, onClose, getAllNotes, onUpdateTab }) {
     // Public sharing Handlers
     const handleGeneratePublicShare = async () => {
         try {
-            const res = await axios.post(`http://localhost:3000/api/note/share/generate/${noteData._id}`, {}, { withCredentials: true });
+            const res = await axios.post(`/api/note/share/generate/${noteData._id}`, {}, { withCredentials: true });
             if (res.data.success) {
                 alert.show("Public share link activated!", "success");
                 setShareToken(res.data.shareToken);
@@ -254,7 +254,7 @@ function AddEditnotes({ type, noteData, onClose, getAllNotes, onUpdateTab }) {
 
     const handleRevokePublicShare = async () => {
         try {
-            const res = await axios.post(`http://localhost:3000/api/note/share/revoke/${noteData._id}`, {}, { withCredentials: true });
+            const res = await axios.post(`/api/note/share/revoke/${noteData._id}`, {}, { withCredentials: true });
             if (res.data.success) {
                 alert.show("Public share link revoked!", "success");
                 setShareToken(null);
@@ -272,7 +272,7 @@ function AddEditnotes({ type, noteData, onClose, getAllNotes, onUpdateTab }) {
 
     const addNewNote = async () => {
         try {
-            const res = await axios.post("http://localhost:3000/api/note/add", { title, content, tags, color, paperType, fontFamily, penColor, stickers, voiceNotes, sketches }, { withCredentials: true })
+            const res = await axios.post("/api/note/add", { title, content, tags, color, paperType, fontFamily, penColor, stickers, voiceNotes, sketches }, { withCredentials: true })
             if (res.data.success == false) {
                 setError(res.data.message);
                 alert.error(res.data.message);
@@ -294,7 +294,7 @@ function AddEditnotes({ type, noteData, onClose, getAllNotes, onUpdateTab }) {
         }
         const noteId = noteData._id;
         try {
-            const res = await axios.post(`http://localhost:3000/api/note/edit/${noteId}`, 
+            const res = await axios.post(`/api/note/edit/${noteId}`, 
                 { title, content, tags, color, paperType, fontFamily, penColor, stickers, voiceNotes, sketches }, 
                 { withCredentials: true }
             );
@@ -316,7 +316,7 @@ function AddEditnotes({ type, noteData, onClose, getAllNotes, onUpdateTab }) {
     const handleBackgroundAutoSave = async (updatedContent) => {
         if (type === 'edit' && noteData?._id) {
             try {
-                await axios.post(`http://localhost:3000/api/note/edit/${noteData._id}`, 
+                await axios.post(`/api/note/edit/${noteData._id}`, 
                     { title, content: updatedContent, tags, color, paperType, fontFamily, penColor, stickers, voiceNotes, sketches }, 
                     { withCredentials: true }
                 );
@@ -332,7 +332,7 @@ function AddEditnotes({ type, noteData, onClose, getAllNotes, onUpdateTab }) {
             return;
         }
         try {
-            const res = await axios.post(`http://localhost:3000/api/note/invite/${noteData._id}`, { email: collabEmail }, { withCredentials: true });
+            const res = await axios.post(`/api/note/invite/${noteData._id}`, { email: collabEmail }, { withCredentials: true });
             if (res.data.success) {
                 alert.success("Collaborator invited!");
                 setCollaborators(prev => [...prev, collabEmail]);

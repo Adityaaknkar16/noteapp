@@ -88,7 +88,7 @@ function HabitsPage() {
 
   const fetchHabits = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/habit/all", { withCredentials: true });
+      const res = await axios.get("/api/habit/all", { withCredentials: true });
       if (res.data.success) {
         setHabits(res.data.habits || []);
       }
@@ -102,7 +102,7 @@ function HabitsPage() {
     if (!title) { alert.error("Habit title is required"); return; }
 
     try {
-      const res = await axios.post("http://localhost:3000/api/habit/add", {
+      const res = await axios.post("/api/habit/add", {
         title,
         description,
         color
@@ -133,7 +133,7 @@ function HabitsPage() {
     if (!title) { alert.error("Habit title is required"); return; }
 
     try {
-      const res = await axios.post(`http://localhost:3000/api/habit/edit/${editHabitId}`, {
+      const res = await axios.post(`/api/habit/edit/${editHabitId}`, {
         title,
         description,
         color
@@ -161,7 +161,7 @@ function HabitsPage() {
   const handleDeleteHabit = async (habitId) => {
     if (!window.confirm("Are you sure you want to delete this habit?")) return;
     try {
-      const res = await axios.delete(`http://localhost:3000/api/habit/delete/${habitId}`, { withCredentials: true });
+      const res = await axios.delete(`/api/habit/delete/${habitId}`, { withCredentials: true });
       if (res.data.success) {
         alert.success("Habit deleted");
         const updatedFreqs = { ...habitFrequencies };
@@ -176,7 +176,7 @@ function HabitsPage() {
 
   const toggleDate = async (habitId, dateStr) => {
     try {
-      const res = await axios.post(`http://localhost:3000/api/habit/toggle/${habitId}`, { date: dateStr }, { withCredentials: true });
+      const res = await axios.post(`/api/habit/toggle/${habitId}`, { date: dateStr }, { withCredentials: true });
       if (res.data.success) {
         setHabits(prev => prev.map(h => h._id === habitId ? res.data.habit : h));
       }

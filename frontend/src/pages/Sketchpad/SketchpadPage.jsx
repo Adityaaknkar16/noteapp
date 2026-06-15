@@ -44,7 +44,7 @@ export default function SketchpadPage() {
   const fetchDrawings = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:3000/api/drawing/all", {
+      const res = await axios.get("/api/drawing/all", {
         withCredentials: true,
       });
       if (res.data.success) {
@@ -85,7 +85,7 @@ export default function SketchpadPage() {
       if (editingDrawing) {
         // Update existing drawing
         const res = await axios.post(
-          `http://localhost:3000/api/drawing/edit/${editingDrawing._id}`,
+          `/api/drawing/edit/${editingDrawing._id}`,
           {
             title: sketchTitle,
             imageData,
@@ -98,7 +98,7 @@ export default function SketchpadPage() {
       } else {
         // Create new drawing
         const res = await axios.post(
-          "http://localhost:3000/api/drawing/add",
+          "/api/drawing/add",
           {
             title: sketchTitle,
             imageData,
@@ -123,7 +123,7 @@ export default function SketchpadPage() {
 
     try {
       const res = await axios.delete(
-        `http://localhost:3000/api/drawing/delete/${drawingId}`,
+        `/api/drawing/delete/${drawingId}`,
         { withCredentials: true }
       );
       if (res.data.success) {

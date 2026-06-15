@@ -76,7 +76,7 @@ function DiaryPage() {
 
   const fetchEntries = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/diary/all", { withCredentials: true });
+      const res = await axios.get("/api/diary/all", { withCredentials: true });
       if (res.data.success) {
         setEntries(res.data.entries || []);
       }
@@ -108,7 +108,7 @@ function DiaryPage() {
     }
 
     try {
-       const res = await axios.post("http://localhost:3000/api/diary/add", {
+       const res = await axios.post("/api/diary/add", {
          title,
          content,
          mood,
@@ -138,7 +138,7 @@ function DiaryPage() {
 
   const handleDeleteEntry = async (entryId) => {
     try {
-      const res = await axios.delete(`http://localhost:3000/api/diary/delete/${entryId}`, { withCredentials: true });
+      const res = await axios.delete(`/api/diary/delete/${entryId}`, { withCredentials: true });
       if (res.data.success) {
         alert.success("Entry deleted");
         fetchEntries();

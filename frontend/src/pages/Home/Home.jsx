@@ -109,7 +109,7 @@ function Home() {
   // Fetch unique tags of active/archived notes to display in sidebar
   const fetchUniqueTags = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/note/all", {
+      const res = await axios.get("/api/note/all", {
         withCredentials: true,
       });
       if (res.data.success && res.data.notes) {
@@ -128,7 +128,7 @@ function Home() {
       if (filter !== "all") params.filter = filter;
       if (tag) params.tag = tag;
 
-      const res = await axios.get("http://localhost:3000/api/note/all", {
+      const res = await axios.get("/api/note/all", {
         params,
         withCredentials: true,
       });
@@ -185,7 +185,7 @@ function Home() {
 
     try {
       const res = await axios.post(
-        `http://localhost:3000/api/note/verify-pin/${pendingAction.note._id}`,
+        `/api/note/verify-pin/${pendingAction.note._id}`,
         { pin: enteredPin },
         { withCredentials: true }
       );
@@ -208,7 +208,7 @@ function Home() {
   const handlePinNote = async (note) => {
     try {
       const res = await axios.put(
-        `http://localhost:3000/api/note/update-note-pinned/${note._id}`,
+        `/api/note/update-note-pinned/${note._id}`,
         { isPinned: !note.isPinned },
         { withCredentials: true }
       );
@@ -226,7 +226,7 @@ function Home() {
   const handleArchiveNote = async (note) => {
     try {
       const res = await axios.post(
-        `http://localhost:3000/api/note/edit/${note._id}`,
+        `/api/note/edit/${note._id}`,
         { isArchived: !note.isArchived },
         { withCredentials: true }
       );
@@ -245,7 +245,7 @@ function Home() {
   const handleRestoreNote = async (note) => {
     try {
       const res = await axios.post(
-        `http://localhost:3000/api/note/edit/${note._id}`,
+        `/api/note/edit/${note._id}`,
         { isTrashed: false },
         { withCredentials: true }
       );
@@ -266,12 +266,12 @@ function Home() {
       let res;
       if (note.isTrashed) {
         res = await axios.delete(
-          `http://localhost:3000/api/note/delete/${note._id}`,
+          `/api/note/delete/${note._id}`,
           { withCredentials: true }
         );
       } else {
         res = await axios.post(
-          `http://localhost:3000/api/note/edit/${note._id}`,
+          `/api/note/edit/${note._id}`,
           { isTrashed: true, isPinned: false },
           { withCredentials: true }
         );
