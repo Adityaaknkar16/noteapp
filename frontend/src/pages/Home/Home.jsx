@@ -118,7 +118,6 @@ function Home() {
         setUniqueTags(tags);
       }
     } catch (error) {
-      console.error("Error fetching unique tags:", error);
     }
   };
 

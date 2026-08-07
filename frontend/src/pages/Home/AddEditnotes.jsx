@@ -321,7 +321,6 @@ function AddEditnotes({ type, noteData, onClose, getAllNotes, onUpdateTab }) {
                     { withCredentials: true }
                 );
             } catch (err) {
-                console.error("Auto-save background error:", err);
             }
         }
     };
