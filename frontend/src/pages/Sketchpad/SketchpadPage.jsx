@@ -51,7 +51,6 @@ export default function SketchpadPage() {
         setDrawings(res.data.drawings);
       }
     } catch (error) {
-      console.error(error);
       alert.show("Failed to fetch sketches", "error");
     } finally {
       setLoading(false);
@@ -112,7 +111,6 @@ export default function SketchpadPage() {
       setEditorOpen(false);
       fetchDrawings();
     } catch (error) {
-      console.error(error);
       alert.show("Failed to save sketch", "error");
     }
   };
@@ -131,7 +129,6 @@ export default function SketchpadPage() {
         fetchDrawings();
       }
     } catch (error) {
-      console.error(error);
       alert.show("Failed to delete sketch", "error");
     }
   };
