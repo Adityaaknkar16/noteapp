@@ -36,7 +36,6 @@ export default function BillsPage() {
         setBills(res.data.bills || []);
       }
     } catch (err) {
-      console.error(err);
     }
   };
 
