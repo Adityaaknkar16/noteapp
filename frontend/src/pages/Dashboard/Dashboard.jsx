@@ -197,7 +197,6 @@ function Dashboard() {
         setDiaryEntries(diaryRes.data.entries || []);
       }
     } catch (error) {
-      console.error("Error fetching academic dashboard data:", error);
     } finally {
       setLoading(false);
     }
