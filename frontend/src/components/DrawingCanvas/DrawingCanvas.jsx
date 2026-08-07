@@ -246,7 +246,6 @@ const DrawingCanvas = forwardRef(({ initialImage }, ref) => {
       setHistory(newHistory);
       setHistoryIndex(newHistory.length - 1);
     } catch (err) {
-      console.error("Failed to save drawing history:", err);
     }
   };
 
