@@ -26,7 +26,6 @@ export default function VoiceInput({ onTranscript, className = "" }) {
     };
 
     rec.onerror = (event) => {
-      console.error("Speech recognition error:", event);
       setIsListening(false);
     };
 
@@ -53,7 +52,6 @@ export default function VoiceInput({ onTranscript, className = "" }) {
       try {
         recognition.start();
       } catch (err) {
-        console.error(err);
       }
     }
   };
