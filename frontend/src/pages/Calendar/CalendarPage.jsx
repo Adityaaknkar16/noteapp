@@ -107,7 +107,6 @@ function CalendarPage() {
       }
 
     } catch (error) {
-      console.error(error);
     }
   };
 
