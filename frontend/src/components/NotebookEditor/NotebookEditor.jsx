@@ -237,7 +237,6 @@ export default function NotebookEditor({
           }
         }
       } catch (e) {
-        console.error("Regex Search Error", e);
       }
     }
   };
