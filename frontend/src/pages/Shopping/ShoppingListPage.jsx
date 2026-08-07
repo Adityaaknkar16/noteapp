@@ -31,7 +31,6 @@ export default function ShoppingListPage() {
         setItemsGrouped(res.data.items || {});
       }
     } catch (err) {
-      console.error(err);
     }
   };
 

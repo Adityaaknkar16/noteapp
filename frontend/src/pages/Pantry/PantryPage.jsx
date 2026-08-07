@@ -34,7 +34,6 @@ export default function PantryPage() {
         setItems(res.data.items || []);
       }
     } catch (err) {
-      console.error(err);
     }
   };
 
