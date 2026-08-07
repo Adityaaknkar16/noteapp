@@ -27,7 +27,6 @@ export default function FlipClock() {
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       clockRef.current?.requestFullscreen().catch((err) => {
-        console.error("Error enabling fullscreen:", err);
       });
     } else {
       document.exitFullscreen();
