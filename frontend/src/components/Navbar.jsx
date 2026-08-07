@@ -54,11 +54,11 @@ function Navbar({ userInfo, handleClearSearch, onSearchNote }) {
     if (isCommandPaletteOpen) {
       axios.get("/api/note/all", { withCredentials: true })
         .then(res => { if (res.data.success) setPaletteNotes(res.data.notes || []); })
-        .catch(err => console.error(err));
+        .catch(err => {});
       
       axios.get("/api/task/all", { withCredentials: true })
         .then(res => { if (res.data.success) setPaletteTasks(res.data.tasks || []); })
-        .catch(err => console.error(err));
+        .catch(err => {});
     }
   }, [isCommandPaletteOpen]);
 
