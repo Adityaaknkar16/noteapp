@@ -33,4 +33,6 @@ Thumbs.db
 # Archives
 *.zip
 *.tar.gz
-*.rar
+# Shims
+powershell.cmd
+powershell.bat

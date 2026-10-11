@@ -1,6 +1,5 @@
 import express from "express";
 import { signOut, signup, signin, google, forgotPassword, resetPassword } from "../controller/auth.controller.js";
-import { verifyToken } from "../utilies/verifyUser.js";
 
 const router = express.Router();
 
@@ -9,6 +8,8 @@ router.post("/signin", signin);
 router.post("/google", google);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
-router.get("/signOut", verifyToken, signOut);
+router.get("/signOut", signOut);
+router.post("/signOut", signOut);
+router.delete("/signOut", signOut);
 
 export default router;

@@ -5,7 +5,7 @@ import { validateEmail } from "../../utlis/helper"
 import { useDispatch } from "react-redux"
 import { LuLock, LuMail } from "react-icons/lu"
 import { FaGoogle, FaFacebookF } from "react-icons/fa"
-import axios from "axios"
+import { apiClient, setAuthToken } from "../../api/apiClient"
 import { useAlert } from "../../components/Alert/AlertProvider"
 import { signInFailure, signInStart, signInSuccess } from "../../redux/userslice/userSlice"
 import { toast } from "react-toastify"
@@ -34,16 +34,36 @@ const Login = () => {
     setError(""); setIsLoading(true)
     try {
       dispatch(signInStart())
-      const res = await axios.post("/api/auth/signin", { email, password }, { withCredentials: true })
+      const res = await apiClient.post("/api/auth/signin", { email, password })
       setIsLoading(false)
-      if (res.data.success === false) { alert.error(res.data.message); dispatch(signInFailure(res.data.message)); return }
+      if (res.data.success === false) {
+        const msg = res.data.message || "Login failed"
+        setError(msg)
+        alert.error(msg)
+        dispatch(signInFailure(msg))
+        return
+      }
+      if (res.data.token) {
+        setAuthToken(res.data.token)
+      }
       alert.success(res.data.message || "Logged in successfully!")
       dispatch(signInSuccess(res.data))
       navigate("/")
     } catch (err) {
       setIsLoading(false)
-      const msg = err.response?.data?.message || err.message || "Something went wrong"
-      toast.error(msg); dispatch(signInFailure(msg))
+      console.error("[Login Error]", err)
+      let msg = "An unexpected error occurred during login."
+      if (err.response?.data?.message) {
+        msg = err.response.data.message
+      } else if (err.code === "ERR_NETWORK" || !err.response) {
+        msg = "Unable to connect to backend server. Please verify the API is running and reachable."
+      } else if (err.message) {
+        msg = err.message
+      }
+      setError(msg)
+      alert.error(msg)
+      toast.error(msg)
+      dispatch(signInFailure(msg))
     }
   }
 
@@ -52,14 +72,31 @@ const Login = () => {
     if (!validateEmail(email)) { setError("Please enter a valid email address"); return }
     setError(""); setIsLoading(true)
     try {
-      const res = await axios.post("/api/auth/forgot-password", { email })
+      const res = await apiClient.post("/api/auth/forgot-password", { email })
       setIsLoading(false)
-      if (res.data.success) { alert.success("Account found! Set your new password."); setResetUserId(res.data.resetToken); setView("reset") }
-      else { alert.error(res.data.message || "Failed") }
+      if (res.data.success) {
+        alert.success("Account found! Set your new password.")
+        setResetUserId(res.data.resetToken)
+        setView("reset")
+      } else {
+        const msg = res.data.message || "Failed to find account"
+        setError(msg)
+        alert.error(msg)
+      }
     } catch (err) {
       setIsLoading(false)
-      const msg = err.response?.data?.message || err.message || "Something went wrong"
-      setError(msg); toast.error(msg)
+      console.error("[Forgot Password Error]", err)
+      let msg = "An unexpected error occurred."
+      if (err.response?.data?.message) {
+        msg = err.response.data.message
+      } else if (err.code === "ERR_NETWORK" || !err.response) {
+        msg = "Unable to connect to backend server. Please verify the API is running."
+      } else if (err.message) {
+        msg = err.message
+      }
+      setError(msg)
+      alert.error(msg)
+      toast.error(msg)
     }
   }
 
@@ -69,14 +106,32 @@ const Login = () => {
     if (password !== confirmPassword) { setError("Passwords do not match"); return }
     setError(""); setIsLoading(true)
     try {
-      const res = await axios.post("/api/auth/reset-password", { userId: resetUserId, password })
+      const res = await apiClient.post("/api/auth/reset-password", { userId: resetUserId, password })
       setIsLoading(false)
-      if (res.data.success) { alert.success("Password updated! Please log in."); setView("login"); setPassword(""); setConfirmPassword("") }
-      else { alert.error(res.data.message || "Reset failed") }
+      if (res.data.success) {
+        alert.success("Password updated! Please log in.")
+        setView("login")
+        setPassword("")
+        setConfirmPassword("")
+      } else {
+        const msg = res.data.message || "Reset failed"
+        setError(msg)
+        alert.error(msg)
+      }
     } catch (err) {
       setIsLoading(false)
-      const msg = err.response?.data?.message || err.message || "Something went wrong"
-      setError(msg); toast.error(msg)
+      console.error("[Reset Password Error]", err)
+      let msg = "Failed to reset password."
+      if (err.response?.data?.message) {
+        msg = err.response.data.message
+      } else if (err.code === "ERR_NETWORK" || !err.response) {
+        msg = "Unable to reach server. Please check your network connection."
+      } else if (err.message) {
+        msg = err.message
+      }
+      setError(msg)
+      alert.error(msg)
+      toast.error(msg)
     }
   }
 
@@ -86,13 +141,33 @@ const Login = () => {
     setShowSocialModal(false); setIsLoading(true)
     try {
       dispatch(signInStart())
-      const res = await axios.post("/api/auth/google", { email: mockEmail, username })
+      const res = await apiClient.post("/api/auth/google", { email: mockEmail, username })
       setIsLoading(false)
-      if (res.data.success) { alert.success(`Logged in via ${socialProvider}!`); dispatch(signInSuccess(res.data)); navigate("/") }
-      else { alert.error(res.data.message || "Social login failed") }
+      if (res.data.success) {
+        if (res.data.token) {
+          setAuthToken(res.data.token)
+        }
+        alert.success(`Logged in via ${socialProvider}!`)
+        dispatch(signInSuccess(res.data))
+        navigate("/")
+      } else {
+        const msg = res.data.message || "Social login failed"
+        setError(msg)
+        alert.error(msg)
+      }
     } catch (err) {
       setIsLoading(false)
-      toast.error(err.response?.data?.message || err.message || "Something went wrong")
+      console.error("[Social Login Error]", err)
+      let msg = "Something went wrong during social login."
+      if (err.response?.data?.message) {
+        msg = err.response.data.message
+      } else if (err.code === "ERR_NETWORK" || !err.response) {
+        msg = "Unable to reach server for social login."
+      } else if (err.message) {
+        msg = err.message
+      }
+      setError(msg)
+      toast.error(msg)
     }
   }
 

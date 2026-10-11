@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PasswordInput from "../../components/input/PasswordInput";
 import { validateEmail } from "../../utlis/helper";
-import axios from "axios";
+import { apiClient, setAuthToken } from "../../api/apiClient";
 import { useAlert } from "../../components/Alert/AlertProvider";
 import { LuUserPlus, LuMail } from "react-icons/lu";
 import { FaGoogle, FaFacebookF } from "react-icons/fa";
@@ -32,15 +32,29 @@ function Signup() {
     if (!password) { setError("Please enter the password"); return; }
     setError(""); setIsLoading(true);
     try {
-      const res = await axios.post("/api/auth/signup", { username: name, email, password }, { withCredentials: true });
+      const res = await apiClient.post("/api/auth/signup", { username: name, email, password });
       setIsLoading(false);
-      if (res.data.success === false) { setError(res.data.message); alert.error(res.data.message || "Sign up failed"); return; }
+      if (res.data.success === false) {
+        const msg = res.data.message || "Sign up failed";
+        setError(msg);
+        alert.error(msg);
+        return;
+      }
       alert.success(res.data.message || "Account created successfully!");
       navigate("/login");
     } catch (err) {
       setIsLoading(false);
-      const msg = err.response?.data?.message || err.message || "Something went wrong";
-      setError(msg); alert.error(msg);
+      console.error("[Signup Error]", err);
+      let msg = "An unexpected error occurred during signup.";
+      if (err.response?.data?.message) {
+        msg = err.response.data.message;
+      } else if (err.code === "ERR_NETWORK" || !err.response) {
+        msg = "Unable to connect to backend server. Please verify the server is running and reachable.";
+      } else if (err.message) {
+        msg = err.message;
+      }
+      setError(msg);
+      alert.error(msg);
     }
   };
 
@@ -50,13 +64,33 @@ function Signup() {
     setShowSocialModal(false); setIsLoading(true);
     try {
       dispatch(signInStart());
-      const res = await axios.post("/api/auth/google", { email: mockEmail, username });
+      const res = await apiClient.post("/api/auth/google", { email: mockEmail, username });
       setIsLoading(false);
-      if (res.data.success) { alert.success(`Registered via ${socialProvider}!`); dispatch(signInSuccess(res.data)); navigate("/"); }
-      else { alert.error(res.data.message || "Social login failed"); }
+      if (res.data.success) {
+        if (res.data.token) {
+          setAuthToken(res.data.token);
+        }
+        alert.success(`Registered via ${socialProvider}!`);
+        dispatch(signInSuccess(res.data));
+        navigate("/");
+      } else {
+        const msg = res.data.message || "Social login failed";
+        setError(msg);
+        alert.error(msg);
+      }
     } catch (err) {
       setIsLoading(false);
-      toast.error(err.response?.data?.message || err.message || "Something went wrong");
+      console.error("[Social Signup Error]", err);
+      let msg = "Something went wrong during social registration.";
+      if (err.response?.data?.message) {
+        msg = err.response.data.message;
+      } else if (err.code === "ERR_NETWORK" || !err.response) {
+        msg = "Unable to connect to backend server.";
+      } else if (err.message) {
+        msg = err.message;
+      }
+      setError(msg);
+      toast.error(msg);
     }
   };
 

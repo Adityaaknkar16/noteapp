@@ -1,16 +1,24 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 import './index.css';
-import {Provider} from "react-redux"
-import axios from "axios";
-
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
-axios.defaults.withCredentials = true;
+import App from './App.jsx';
+import { Provider } from 'react-redux';
+import axios from 'axios';
+import { API_BASE_URL, getAuthToken } from './api/apiClient.js';
 import { persistor, store } from './redux/userslice/store.js';
 import { PersistGate } from 'redux-persist/integration/react';
 
+// Configure global Axios defaults as well so any direct axios calls inherit them
+axios.defaults.baseURL = API_BASE_URL;
+axios.defaults.withCredentials = true;
+
+axios.interceptors.request.use((config) => {
+  const token = getAuthToken();
+  if (token && !config.headers.Authorization) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 createRoot(document.getElementById('root')).render(
   <Provider store={store}>
@@ -19,6 +27,3 @@ createRoot(document.getElementById('root')).render(
     </PersistGate>
   </Provider>
 );
-
-
-

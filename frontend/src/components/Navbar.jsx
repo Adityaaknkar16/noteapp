@@ -9,7 +9,7 @@ import {
   signoutStart,
   signoutSuccess,
 } from '../redux/userslice/userSlice';
-import axios from 'axios';
+import { apiClient, clearAuthToken, getAuthToken } from '../api/apiClient';
 import { toast } from 'react-toastify';
 import { useSettings } from './Settings/SettingsProvider';
 import PersonalizationModal from './Settings/PersonalizationModal';
@@ -28,8 +28,8 @@ function Navbar({ userInfo, handleClearSearch, onSearchNote }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { token } = useSelector((state) => state.user);
-  const authToken = token || localStorage.getItem('token');
+  const userState = useSelector((state) => state.user);
+  const authToken = userState?.currentUser?.token || getAuthToken();
 
   const { theme, setTheme, playPageFlip, isSidebarOpen, setIsSidebarOpen } = useSettings();
   const isDarkMode = theme === "dark" || theme === "midnight";
@@ -52,11 +52,11 @@ function Navbar({ userInfo, handleClearSearch, onSearchNote }) {
 
   useEffect(() => {
     if (isCommandPaletteOpen) {
-      axios.get("/api/note/all", { withCredentials: true })
+      apiClient.get("/api/note/all")
         .then(res => { if (res.data.success) setPaletteNotes(res.data.notes || []); })
         .catch(err => {});
       
-      axios.get("/api/task/all", { withCredentials: true })
+      apiClient.get("/api/task/all")
         .then(res => { if (res.data.success) setPaletteTasks(res.data.tasks || []); })
         .catch(err => {});
     }
@@ -82,92 +82,23 @@ function Navbar({ userInfo, handleClearSearch, onSearchNote }) {
   const onLogout = async () => {
     try {
       dispatch(signoutStart());
-
-      if (!authToken) {
-        toast.error('You are not logged in');
-        dispatch(signoutFailure('No authentication token'));
-        localStorage.removeItem('token');
-        navigate('/login');
-        return;
-      }
-
-      const logoutAttempts = [
-        {
-          method: 'get',
-          url: '/api/auth/signOut',
-          config: {
-            headers: { Authorization: `Bearer ${authToken}` },
-            withCredentials: true,
-            timeout: 10000,
-          },
-        },
-        {
-          method: 'post',
-          url: '/api/auth/signOut',
-          config: {
-            withCredentials: true,
-            timeout: 10000,
-          },
-        },
-        {
-          method: 'delete',
-          url: '/api/auth/signOut',
-          config: {
-            headers: { Authorization: `Bearer ${authToken}` },
-            withCredentials: true,
-            timeout: 10000,
-          },
-        },
-        {
-          method: 'post',
-          url: '/api/auth/signOut',
-          config: {
-            headers: {
-              'x-auth-token': authToken,
-              'Content-Type': 'application/json',
-            },
-            withCredentials: true,
-            timeout: 10000,
-          },
-        },
-      ];
-
-      for (const attempt of logoutAttempts) {
+      try {
+        await apiClient.get('/api/auth/signOut');
+      } catch (err) {
         try {
-          const res = await axios[attempt.method](attempt.url, {}, attempt.config);
-          if (res.data.success !== false) {
-            toast.success(res.data.message || 'Logged out successfully');
-            dispatch(signoutSuccess());
-            localStorage.removeItem('token');
-            navigate('/login');
-            return;
-          } else {
-            toast.error(res.data.message || 'Logout failed');
-          }
-        } catch (err) {
-          toast.error(`${attempt.method.toUpperCase()} logout method failed`);
+          await apiClient.post('/api/auth/signOut');
+        } catch (postErr) {
+          console.warn("[Navbar Logout] Server session clear error:", postErr);
         }
       }
-
-      toast.warning('Logged out locally (server logout failed)');
+      clearAuthToken();
       dispatch(signoutSuccess());
-      localStorage.removeItem('token');
+      toast.success('Logged out successfully');
       navigate('/login');
     } catch (error) {
-      if (error.response?.status === 401) {
-        toast.error('Session expired. Please login again.');
-      } else if (error.response?.status === 500) {
-        toast.error('Server error occurred during logout');
-        dispatch(signoutFailure(error.message));
-      } else if (error.code === 'ECONNREFUSED') {
-        toast.error('Unable to connect to server');
-        dispatch(signoutFailure('Connection failed'));
-      } else {
-        toast.warning('Logged out locally (server error)');
-      }
-
+      console.error("[Navbar Logout Error]", error);
+      clearAuthToken();
       dispatch(signoutSuccess());
-      localStorage.removeItem('token');
       navigate('/login');
     }
   };
