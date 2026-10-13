@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import PageDecor from "../../components/Doodles/PageDecor";
 import BottomBar from "../../components/BottomBar/BottomBar";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
 import { useSelector } from "react-redux";
-import axios from "axios";
+import apiClient from "../../api/apiClient";
 import moment from "moment";
 import { useAlert } from "../../components/Alert/AlertProvider";
 import { 
@@ -111,18 +111,18 @@ export default function BudgetPage() {
     }
   }, [type]);
 
-  const fetchBudgetData = async () => {
+  const fetchBudgetData = useCallback(async () => {
     setLoading(true);
     try {
       const [sumRes, txRes] = await Promise.all([
-        axios.get(`/api/budget/summary?month=${viewMonth}`, { withCredentials: true }),
-        axios.get(`/api/budget/all?month=${viewMonth}`, { withCredentials: true })
+        apiClient.get(`/api/budget/summary?month=${viewMonth}`),
+        apiClient.get(`/api/budget/all?month=${viewMonth}`)
       ]);
 
-      if (sumRes.data.success && sumRes.data.summary) {
+      if (sumRes.data?.success && sumRes.data.summary) {
         setSummary(sumRes.data.summary);
       }
-      if (txRes.data.success && txRes.data.transactions) {
+      if (txRes.data?.success && txRes.data.transactions) {
         setTransactions(txRes.data.transactions);
       }
     } catch (err) {
@@ -130,11 +130,11 @@ export default function BudgetPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [viewMonth]);
 
   useEffect(() => {
     fetchBudgetData();
-  }, [viewMonth]);
+  }, [fetchBudgetData]);
 
   const formatCurrency = (val) => {
     const num = Number(val) || 0;
@@ -164,19 +164,15 @@ export default function BudgetPage() {
 
     setSubmitting(true);
     try {
-      const res = await axios.post(
-        "/api/budget/add",
-        {
-          type,
-          category,
-          amount: Number(amount),
-          note: note.trim(),
-          date
-        },
-        { withCredentials: true }
-      );
+      const res = await apiClient.post("/api/budget/add", {
+        type,
+        category,
+        amount: Number(amount),
+        note: note.trim(),
+        date
+      });
 
-      if (res.data.success) {
+      if (res.data?.success) {
         alert.show("Transaction added successfully", "success");
         setAmount("");
         setNote("");
@@ -193,8 +189,8 @@ export default function BudgetPage() {
     if (!window.confirm("Are you sure you want to delete this transaction?")) return;
 
     try {
-      const res = await axios.delete(`/api/budget/delete/${transactionId}`, { withCredentials: true });
-      if (res.data.success) {
+      const res = await apiClient.delete(`/api/budget/delete/${transactionId}`);
+      if (res.data?.success) {
         alert.show("Transaction deleted successfully", "success");
         fetchBudgetData();
       }
@@ -222,19 +218,15 @@ export default function BudgetPage() {
     }
 
     try {
-      const res = await axios.put(
-        `/api/budget/edit/${editingTx._id}`,
-        {
-          type: editFormData.type,
-          category: editFormData.category,
-          amount: Number(editFormData.amount),
-          note: editFormData.note.trim(),
-          date: editFormData.date
-        },
-        { withCredentials: true }
-      );
+      const res = await apiClient.put(`/api/budget/edit/${editingTx._id}`, {
+        type: editFormData.type,
+        category: editFormData.category,
+        amount: Number(editFormData.amount),
+        note: editFormData.note.trim(),
+        date: editFormData.date
+      });
 
-      if (res.data.success) {
+      if (res.data?.success) {
         alert.show("Transaction updated successfully", "success");
         setEditingTx(null);
         fetchBudgetData();
@@ -272,23 +264,34 @@ export default function BudgetPage() {
 
   const handleCalcEval = () => {
     try {
-      // Safe math evaluator for digits and +, -, *, /, .
-      if (!calcInput.trim()) return;
-      if (!/^[0-9+\-*/. ()]+$/.test(calcInput)) {
+      const sanitized = calcInput.replace(/\s+/g, "");
+      if (!sanitized) return;
+      if (!/^[0-9+\-*/.]+$/.test(sanitized)) {
         alert.show("Invalid calculation characters", "error");
         return;
       }
-      // eslint-disable-next-line no-eval
-      const result = Function(`"use strict"; return (${calcInput})`)();
-      if (!isNaN(result) && isFinite(result)) {
-        const rounded = Math.round(result * 100) / 100;
+      // Simple safe mathematical evaluator
+      const tokens = sanitized.match(/(\d+(\.\d+)?|[+\-*/])/g);
+      if (!tokens) return;
+      let total = parseFloat(tokens[0]);
+      for (let i = 1; i < tokens.length; i += 2) {
+        const op = tokens[i];
+        const nextVal = parseFloat(tokens[i + 1]);
+        if (isNaN(nextVal)) break;
+        if (op === "+") total += nextVal;
+        else if (op === "-") total -= nextVal;
+        else if (op === "*") total *= nextVal;
+        else if (op === "/" && nextVal !== 0) total /= nextVal;
+      }
+      if (!isNaN(total) && isFinite(total)) {
+        const rounded = Math.round(total * 100) / 100;
         setAmount(String(rounded));
         setShowCalculator(false);
         setCalcInput("");
         alert.show(`Calculated: ${rounded}`, "success");
       }
-    } catch (e) {
-      alert.show("Calculation syntax error", "error");
+    } catch {
+      alert.show("Calculation error", "error");
     }
   };
 
