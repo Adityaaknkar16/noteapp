@@ -8,7 +8,6 @@ import { LuUserPlus, LuMail } from "react-icons/lu";
 import { FaGoogle, FaFacebookF } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { signInStart, signInSuccess } from "../../redux/userslice/userSlice";
-import { toast } from "react-toastify";
 import PageDecor from "../../components/Doodles/PageDecor";
 import { DetailedLeaf } from "../../components/Doodles/Leaves";
 
@@ -90,7 +89,7 @@ function Signup() {
         msg = err.message;
       }
       setError(msg);
-      toast.error(msg);
+      alert.error(msg);
     }
   };
 

@@ -1,43 +1,50 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from "react";
-import { MdCheckCircle, MdErrorOutline, MdInfoOutline, MdWarningAmber, MdClose } from "react-icons/md";
+import React, { createContext, useContext, useState, useCallback } from "react";
+import { 
+  LuCheckCircle2, 
+  LuAlertCircle, 
+  LuAlertTriangle, 
+  LuInfo, 
+  LuX 
+} from "react-icons/lu";
 
 const AlertContext = createContext(null);
 
-const ICONS = {
-  success: MdCheckCircle,
-  error: MdErrorOutline,
-  info: MdInfoOutline,
-  warning: MdWarningAmber,
-};
-
-const STYLES = {
+const ALERT_CONFIG = {
   success: {
-    bar: "bg-emerald-400",
-    icon: "text-emerald-400",
-    ring: "border-emerald-400/20",
-    glow: "shadow-emerald-500/10",
-    bg: "from-emerald-500/10 to-transparent",
+    label: "Success",
+    icon: LuCheckCircle2,
+    badgeClass: "bg-accent-sage/15 text-accent-sage border-accent-sage/30",
+    barClass: "bg-accent-sage",
+    textClass: "text-accent-sage",
+    progressClass: "bg-accent-sage/60",
+    glow: "shadow-accent-sage/10",
   },
   error: {
-    bar: "bg-rose-400",
-    icon: "text-rose-400",
-    ring: "border-rose-400/20",
-    glow: "shadow-rose-500/10",
-    bg: "from-rose-500/10 to-transparent",
-  },
-  info: {
-    bar: "bg-blue-400",
-    icon: "text-blue-400",
-    ring: "border-blue-400/20",
-    glow: "shadow-blue-500/10",
-    bg: "from-blue-500/10 to-transparent",
+    label: "Error",
+    icon: LuAlertCircle,
+    badgeClass: "bg-accent-red/15 text-accent-red border-accent-red/30",
+    barClass: "bg-accent-red",
+    textClass: "text-accent-red",
+    progressClass: "bg-accent-red/60",
+    glow: "shadow-accent-red/10",
   },
   warning: {
-    bar: "bg-amber-400",
-    icon: "text-amber-400",
-    ring: "border-amber-400/20",
-    glow: "shadow-amber-500/10",
-    bg: "from-amber-500/10 to-transparent",
+    label: "Warning",
+    icon: LuAlertTriangle,
+    badgeClass: "bg-accent-ochre/15 text-accent-ochre border-accent-ochre/30",
+    barClass: "bg-accent-ochre",
+    textClass: "text-accent-ochre",
+    progressClass: "bg-accent-ochre/60",
+    glow: "shadow-accent-ochre/10",
+  },
+  info: {
+    label: "Note",
+    icon: LuInfo,
+    badgeClass: "bg-accent-blue/15 text-accent-blue border-accent-blue/30",
+    barClass: "bg-accent-blue",
+    textClass: "text-accent-blue",
+    progressClass: "bg-accent-blue/60",
+    glow: "shadow-accent-blue/10",
   },
 };
 
@@ -50,71 +57,119 @@ export function AlertProvider({ children }) {
     setAlerts((prev) =>
       prev.map((a) => (a.id === id ? { ...a, leaving: true } : a))
     );
-    setTimeout(() => setAlerts((prev) => prev.filter((a) => a.id !== id)), 380);
+    setTimeout(() => {
+      setAlerts((prev) => prev.filter((a) => a.id !== id));
+    }, 320);
   }, []);
 
   const show = useCallback(
-    (message, type = "info", duration = 3500) => {
+    (message, type = "info", options = {}) => {
       const id = ++idCounter;
-      setAlerts((prev) => [...prev, { id, message, type, leaving: false }]);
-      if (duration > 0) setTimeout(() => dismiss(id), duration);
+      const duration = typeof options === "number" ? options : (options.duration ?? 3800);
+      const title = typeof options === "object" ? options.title : undefined;
+
+      setAlerts((prev) => [
+        ...prev, 
+        { 
+          id, 
+          message, 
+          type, 
+          title, 
+          duration, 
+          createdAt: Date.now(),
+          leaving: false 
+        }
+      ]);
+
+      if (duration > 0) {
+        setTimeout(() => dismiss(id), duration);
+      }
       return id;
     },
     [dismiss]
   );
 
   const alert = {
-    success: (msg, dur) => show(msg, "success", dur),
-    error: (msg, dur) => show(msg, "error", dur),
-    info: (msg, dur) => show(msg, "info", dur),
-    warning: (msg, dur) => show(msg, "warning", dur),
+    success: (msg, opts) => show(msg, "success", opts),
+    error: (msg, opts) => show(msg, "error", opts),
+    info: (msg, opts) => show(msg, "info", opts),
+    warning: (msg, opts) => show(msg, "warning", opts),
+    dismiss,
   };
 
   return (
     <AlertContext.Provider value={alert}>
       {children}
 
-      {/* Alert Stack — top-center */}
-      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-3 pointer-events-none w-full max-w-sm px-4">
+      {/* Alert Notification Toast Stack — top center, floating in app theme */}
+      <div 
+        aria-live="polite"
+        className="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-2.5 pointer-events-none w-full max-w-md px-4"
+      >
         {alerts.map((a) => {
-          const s = STYLES[a.type] || STYLES.info;
-          const Icon = ICONS[a.type] || MdInfoOutline;
+          const cfg = ALERT_CONFIG[a.type] || ALERT_CONFIG.info;
+          const Icon = cfg.icon;
+
           return (
             <div
               key={a.id}
+              role="alert"
               className={`
-                pointer-events-auto w-full
+                pointer-events-auto w-full relative overflow-hidden
                 flex items-center gap-3.5 px-4 py-3.5
-                rounded-2xl border backdrop-blur-xl
-                bg-slate-900/90 dark:bg-slate-950/95
-                shadow-2xl ${s.ring} ${s.glow}
+                rounded-2xl border border-border/80 backdrop-blur-xl
+                bg-surface/95 text-ink
+                shadow-xl shadow-ink/10 ${cfg.glow}
                 transition-all duration-300 ease-out
                 ${a.leaving
-                  ? "opacity-0 -translate-y-2 scale-95"
+                  ? "opacity-0 -translate-y-3 scale-95"
                   : "opacity-100 translate-y-0 scale-100"}
               `}
               style={{ willChange: "transform, opacity" }}
             >
-              {/* Left color bar */}
-              <div className={`absolute left-0 top-3 bottom-3 w-0.5 rounded-full ${s.bar} ml-0`}
-                style={{ position: 'absolute', left: 0, top: '12px', bottom: '12px', width: '3px', borderRadius: '4px' }}
+              {/* Left Theme Status Accent Stripe */}
+              <div 
+                className={`absolute left-0 top-2 bottom-2 w-1 rounded-r-full ${cfg.barClass}`}
               />
 
-              {/* Icon */}
-              <span className={`text-xl flex-shrink-0 ml-2 ${s.icon}`}>
-                <Icon />
-              </span>
-
-              {/* Message */}
-              <p className="flex-1 text-sm font-semibold text-white leading-snug">{a.message}</p>
-
-              {/* Close */}
-              <button
-                onClick={() => dismiss(a.id)}
-                className="flex-shrink-0 text-slate-500 hover:text-white transition-colors cursor-pointer rounded-lg p-0.5"
+              {/* Status Icon Badge */}
+              <div 
+                className={`flex-shrink-0 w-8 h-8 rounded-xl flex items-center justify-center border shadow-2xs ${cfg.badgeClass} ml-1`}
               >
-                <MdClose className="text-base" />
+                <Icon className="text-lg" />
+              </div>
+
+              {/* Content text */}
+              <div className="flex-1 min-w-0 pr-1">
+                <div className="flex items-center gap-2">
+                  <span className={`text-[10px] font-bold uppercase tracking-wider ${cfg.textClass}`}>
+                    {a.title || cfg.label}
+                  </span>
+                </div>
+                <p className="text-sm font-semibold text-ink leading-snug break-words mt-0.5">
+                  {a.message}
+                </p>
+              </div>
+
+              {/* Dismiss Button */}
+              <button
+                type="button"
+                onClick={() => dismiss(a.id)}
+                aria-label="Dismiss message"
+                className="flex-shrink-0 text-ink-muted hover:text-ink hover:bg-border/40 rounded-lg p-1.5 transition-colors cursor-pointer"
+              >
+                <LuX className="text-base" />
               </button>
+
+              {/* Auto-dismiss countdown bar at bottom */}
+              {a.duration > 0 && (
+                <div 
+                  className={`absolute left-0 bottom-0 h-[2.5px] ${cfg.progressClass}`}
+                  style={{
+                    animation: `shrinkWidth ${a.duration}ms linear forwards`,
+                  }}
+                />
+              )}
             </div>
           );
         })}

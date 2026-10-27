@@ -10,13 +10,14 @@ import {
   signoutSuccess,
 } from '../redux/userslice/userSlice';
 import { apiClient, clearAuthToken, getAuthToken } from '../api/apiClient';
-import { toast } from 'react-toastify';
+import { useAlert } from './Alert/AlertProvider';
 import { useSettings } from './Settings/SettingsProvider';
 import PersonalizationModal from './Settings/PersonalizationModal';
 import FlipClock from './FlipClock/FlipClock';
 import Modal from 'react-modal';
 
 function Navbar({ userInfo, handleClearSearch, onSearchNote }) {
+  const alert = useAlert();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -93,7 +94,7 @@ function Navbar({ userInfo, handleClearSearch, onSearchNote }) {
       }
       clearAuthToken();
       dispatch(signoutSuccess());
-      toast.success('Logged out successfully');
+      alert.success('Logged out successfully');
       navigate('/login');
     } catch (error) {
       console.error("[Navbar Logout Error]", error);

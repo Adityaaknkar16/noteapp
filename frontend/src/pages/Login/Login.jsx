@@ -8,7 +8,6 @@ import { FaGoogle, FaFacebookF } from "react-icons/fa"
 import { apiClient, setAuthToken } from "../../api/apiClient"
 import { useAlert } from "../../components/Alert/AlertProvider"
 import { signInFailure, signInStart, signInSuccess } from "../../redux/userslice/userSlice"
-import { toast } from "react-toastify"
 import PageDecor from "../../components/Doodles/PageDecor"
 import { DetailedLeaf } from "../../components/Doodles/Leaves"
 
@@ -62,7 +61,6 @@ const Login = () => {
       }
       setError(msg)
       alert.error(msg)
-      toast.error(msg)
       dispatch(signInFailure(msg))
     }
   }
@@ -96,7 +94,6 @@ const Login = () => {
       }
       setError(msg)
       alert.error(msg)
-      toast.error(msg)
     }
   }
 
@@ -131,7 +128,6 @@ const Login = () => {
       }
       setError(msg)
       alert.error(msg)
-      toast.error(msg)
     }
   }
 
@@ -167,7 +163,7 @@ const Login = () => {
         msg = err.message
       }
       setError(msg)
-      toast.error(msg)
+      alert.error(msg)
     }
   }
 
