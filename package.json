@@ -15,6 +15,11 @@
     "start:backend": "npm run start -w backend",
     "start": "npm run start -w backend"
   },
+  "allowScripts": {
+    "@swc/core": true,
+    "core-js": true,
+    "esbuild": true
+  },
   "devDependencies": {
     "concurrently": "^9.1.2"
   }
